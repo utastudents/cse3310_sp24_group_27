@@ -1,0 +1,60 @@
+# Derived from an example provided by https://blog.benoitblanchon.fr/github-action-run-ssh-commands/
+#
+#
+#
+#
+name: Deploy
+on: [push]
+jobs:
+  deploy:
+    name: "Deploy to server"
+    runs-on: ubuntu-latest
+    steps:
+      - name: configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_KEY" > ~/.ssh/production.key
+          chmod 600 ~/.ssh/production.key
+          cat >>~/.ssh/config <<END
+          Host production
+            HostName $SSH_HOST
+            User $SSH_USER
+            IdentityFile ~/.ssh/production.key
+            StrictHostKeyChecking no
+          END
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+
+      - name: get source code and compile
+        run: |
+          ssh production "rm -rf ./TicTacToe"
+          ssh production "git clone https://github.com/BudDavis/TicTacToe"
+          ssh production "cd TicTacToe;mvn clean compile package"
+        
+      - name: create systemd unit file
+        run: |
+           # without enable-linger, you must be logged in??
+           ssh production "loginctl enable-linger"
+           ssh production "mkdir --parents /home/sp24_group1/.config/systemd/user"
+           ssh production "rm -f /home/sp24_group1/.config/systemd/user/tictactoe.service"
+           ssh production 'echo "[Unit]" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "Description=tictactoe" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "[Service]" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "Type=simple" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "Restart=always" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "RestartSec=5" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "ExecStart=mvn exec:java -Dexec.mainClass=uta.cse3310.App" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "WorkingDirectory=/home/sp24_group1/TicTacToe" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "[Install]" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+           ssh production 'echo "WantedBy=default.target" >>/home/sp24_group1/.config/systemd/user/tictactoe.service'
+      - name: systemd reload
+        run: |
+            ssh production "systemctl --user daemon-reload"
+           
+      - name: restart daemon
+        run: |
+           ssh production "systemctl --user enable tictactoe.service"
+           ssh production "systemctl --user restart tictactoe.service"
+           ssh production "systemctl --user status tictactoe.service"
