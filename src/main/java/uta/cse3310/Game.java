@@ -28,6 +28,10 @@ public class Game {
         Msg[0] = "Waiting for other player to join";
         Msg[1] = "";
     }
+    //Annotate board method
+    public void Annotate_Board(){
+        
+    }
 
     public void ResetBoard() {
         // initializes the board to NOPLAYER in all spots
@@ -36,6 +40,7 @@ public class Game {
         }
     }
 
+    //might remove this
     public int OpenSpots() {
         // counts the number of spots that neither
         // O or X has taken.
@@ -56,15 +61,7 @@ public class Game {
         System.out.println(Button[6].toString() + " " + Button[7].toString() + " " + Button[8].toString());
     }
 
-    public void SetBoard(PlayerType p, int[] b) {
-        // this method is only used for testing purposes
-        // p is the player to give the square to, and b
-        // is an array of button numbers
-        for (int i : b) {
-            Button[i] = p;
-        }
-
-    }
+    
 
     public void StartGame() {
         // X player goes first. Because that is how it is.
@@ -80,18 +77,22 @@ public class Game {
     }
 
     private boolean CheckHorizontal(PlayerType player) {
+        //would need to change the requirements for this function but keeping it the same as tic tac toe for now
         return CheckLine(0, 1, 2, player) || CheckLine(3, 4, 5, player) || CheckLine(6, 7, 8, player);
     }
-
+    
     private boolean CheckVertical(PlayerType player) {
+        //would need to change the requirements for this function but keeping it the same as tic tac toe for now
         return CheckLine(0, 3, 6, player) || CheckLine(1, 4, 7, player) || CheckLine(2, 5, 8, player);
     }
-
+    
     private boolean CheckDiagonal(PlayerType player) {
+        //would need to change the requirements for this function but keeping it the same as tic tac toe for now
         return CheckLine(0, 4, 8, player) || CheckLine(2, 4, 6, player);
     }
-
+    
     public boolean CheckBoard(PlayerType player) {
+        //would need to change the requirements for this function but keeping it the same as tic tac toe for now
         return CheckHorizontal(player) || CheckVertical(player) || CheckDiagonal(player);
     }
 
@@ -152,32 +153,32 @@ public class Game {
                 Msg[0] = "You Win!";
                 Msg[1] = "You Lose!";
                 CurrentTurn = PlayerType.NOPLAYER;
-                Stats.setXWins(Stats.getXWins() + 1);
+                Stats.setPlayer1Wins(Stats.getPlayer1Wins() + 1);
                 Stats.setGamesInProgress(Stats.getGamesInProgress() - 1);
-                Stats.setTotalGames(Stats.getTotalGames() + 1);
             } else if (CheckBoard(PlayerType.OPLAYER)) {
                 Msg[1] = "You Win!";
                 Msg[0] = "You Lose!";
                 CurrentTurn = PlayerType.NOPLAYER;
-                Stats.setOWins(Stats.getOWins() + 1);
+                Stats.setPlayer2Wins(Stats.getPlayer2Wins() + 1);
                 Stats.setGamesInProgress(Stats.getGamesInProgress() - 1);
-                Stats.setTotalGames(Stats.getTotalGames() + 1);
+                
             } else if (CheckDraw(U.PlayerIdx)) {
                 Msg[0] = "Draw";
                 Msg[1] = "Draw";
                 CurrentTurn = PlayerType.NOPLAYER;
                 Stats.setDraws(Stats.getDraws() + 1);
                 Stats.setGamesInProgress(Stats.getGamesInProgress() - 1);
-                Stats.setTotalGames(Stats.getTotalGames() + 1);
+            
             }
         }
     }
-
-    public void Tick() {
-        // this function can be called periodically if a
-        // timer is needed.
-
+    
+    public String[] Messaging(){
+        //will return a string array
+        String return_value[] = {};
+        return return_value;
     }
+
 }
 // In windows, shift-alt-F formats the source code
 // In linux, it is ctrl-shift-I
