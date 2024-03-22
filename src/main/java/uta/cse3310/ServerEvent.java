@@ -1,7 +1,10 @@
 package uta.cse3310;
 
 public class ServerEvent {
-    PlayerType YouAre; // Either an XPLAYER or a YPLAYER
+    PlayerType YouAre; // Either a PLAYERONE or a PLAYERTWO
     int GameId;
     
+    public void ServerEvent() {
+        
+    }
 }
