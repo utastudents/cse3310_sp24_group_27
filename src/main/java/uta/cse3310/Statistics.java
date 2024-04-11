@@ -10,6 +10,9 @@ public class Statistics {
     private Integer TotalGames;
     private Integer GamesInProgress;
 
+
+
+
     public Statistics() {
         RunningTime = 0L;
         XWins = 0;
