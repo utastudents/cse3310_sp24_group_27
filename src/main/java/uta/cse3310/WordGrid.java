@@ -10,96 +10,91 @@ public class WordGrid {
    // generate both grids (coordinatesList and shownGrid)
    public void generateGrid(int gridSize, double numWords, List<String> words, String[][] coordinatesList, String[][] shownGrid){
       
-      // initial fill of the asteriskGrid with * in every spot
-      // for(int i = 0; i < gridSize; i++){
-      //    for(int k = 0; k < gridSize; k++){
-      //       shownGrid[i][k] = "*";
-      //    }
-      // }
-
-      boolean found = false;
-
-      for(int i = 0; i < gridSize; i++) {
+      // initial fill with * in every spot to show availability
+      for(int i = 0; i < gridSize; i++){
          for(int k = 0; k < gridSize; k++){
-            for(int p = 1; p <= numWords; p++){
-               // String word = getWord();
-
-               // up, down, right, up-right, down-right
-               // int direction = rand.nextInt(4);
-
-
-            }
+            shownGrid[i][k] = "*";
          }
       }
 
-      while(!found) {
-         int randX = rand.nextInt(49);
-         int randY = rand.nextInt(49);
-         int xVal = randX;
-         int yVal = randY;
-         int sizeSoFar = 1;
-         int direction = rand.nextInt(4);
-         boolean taken = false;
+      boolean found = false;
 
-         // while(sizeSoFar <= strlen(word) && !taken) {
-         while(!taken) {
-            //up
-            if(direction == 0) {
-               if(shownGrid[xVal][yVal] == "*") {
-                  yVal++;
+      // while you're not done filling in all the words yet
+      for(int wordsNum = 0; wordsNum < numWords; wordsNum++) {
+         
+         String word = getWord();
+
+         while(!found) {
+            int randX = rand.nextInt(49);
+            int randY = rand.nextInt(49);
+            int xVal = randX;
+            int yVal = randY;
+            int sizeSoFar = 1;
+            int direction = rand.nextInt(4);
+            boolean taken = false;
+
+            // while the space for the word at the random coordinate isn't taken
+            while(sizeSoFar <= word.length() && !taken) {
+               //up
+               if(direction == 0) {
+                  if(shownGrid[xVal][yVal] == "*") {
+                     yVal++;
+                  }
+                  else {
+                     taken = true;
+                  }
                }
+
+               //down
+               else if(direction == 1) {
+                  if(shownGrid[xVal][yVal] == "*") {
+                     yVal--;
+                  }
+                  else {
+                     taken = true;
+                  }
+               }
+
+               //left
+               else if(direction == 2) {
+                  if(shownGrid[xVal][yVal] == "*") {
+                     xVal++;
+                  }
+                  else {
+                     taken = true;
+                  }
+               }
+
+               //up-right
+               else if(direction == 3) {
+                  if(shownGrid[xVal][yVal] == "*") {
+                     xVal++;
+                     yVal++;
+                  }
+                  else {
+                     taken = true;
+                  }
+               }
+
+               //down-left
                else {
-                  taken = true;
+                  if(shownGrid[xVal][yVal] == "*") {
+                     xVal--;
+                     yVal--;
+                  }
+                  else {
+                     taken = true;
+                  }
                }
+
+               sizeSoFar++;
             }
 
-            //down
-            else if(direction == 1) {
-               if(shownGrid[xVal][yVal] == "*") {
-                  yVal--;
-               }
-               else {
-                  taken = true;
-               }
+            if(!taken) {
+               found = true;
             }
 
-            //left
-            else if(direction == 2) {
-               if(shownGrid[xVal][yVal] == "*") {
-                  xVal++;
-               }
-               else {
-                  taken = true;
-               }
-            }
-
-            //up-right
-            else if(direction == 3) {
-               if(shownGrid[xVal][yVal] == "*") {
-                  xVal++;
-                  yVal++;
-               }
-               else {
-                  taken = true;
-               }
-            }
-
-            //down-left
-            else {
-               if(shownGrid[xVal][yVal] == "*") {
-                  xVal--;
-                  yVal--;
-               }
-               else {
-                  taken = true;
-               }
-            }
-
-            sizeSoFar++;
-         }
-         if(!taken) {
-            found = true;
-            
+            // if taken, restart loop - this chooses all new coordinates and starts everything again
          }
       }
 
@@ -125,8 +120,14 @@ public class WordGrid {
    }
 
    public static void main(String[] args){
-      // generateGrid(50, 10, )
-      System.out.print("k");
+
+      // generateGrid(50, 10, List<String> words, String coordinatesList[][], shownGrid[][]);
+      // for(int i = 0; i < 50; i++){
+      //    for(int k = 0; k < 50; k++){
+      //       System.out.print(shownGrid[i][k]);
+      //    }
+      // }
+      
    }
 
 }
