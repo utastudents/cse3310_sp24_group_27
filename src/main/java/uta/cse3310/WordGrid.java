@@ -2,13 +2,19 @@ package uta.cse3310;
 import java.util.List;
 import java.util.Random;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
+
 
 public class WordGrid {
 
    Random rand = new Random();
 
    // generate both grids (coordinatesList and shownGrid)
-   public void generateGrid(int gridSize, double numWords, List<String> words, String[][] coordinatesList, String[][] shownGrid){
+   public void generateGrid(int gridSize, double numWords, FILE file, int[][] coordinatesList, String[][] shownGrid){
       
       // initial fill with * in every spot to show availability
       for(int i = 0; i < gridSize; i++){
@@ -24,6 +30,7 @@ public class WordGrid {
          
          String word = getWord();
 
+         // while space for the word hasn't been found
          while(!found) {
             int randX = rand.nextInt(49);
             int randY = rand.nextInt(49);
@@ -92,6 +99,8 @@ public class WordGrid {
 
             if(!taken) {
                found = true;
+               coordinatesList[1][wordsNum] = randX;
+               coordinatesList[wordsNum][1] = randY;
             }
 
             // if taken, restart loop - this chooses all new coordinates and starts everything again
@@ -101,22 +110,55 @@ public class WordGrid {
    }
 
 
+   // public String getWord() {
+   //    //get file
+   //    //duplicate file
+   //    //read duplicate file
+      
+   //    //get random letter
+   //    //get random index
+   //    //find word starting with random letter in duplicate file
+   //       //if word is shorter than 3 letters, move on
+   //    //increase index counter and move on until out of words beginning with the selected letter
+   //    //return as "word"
+   //    return word;
+   // }
+
    public String getWord() {
-   //    // int randNum = rand.nextInt(25);
-   //    // String word;
+      String word = null;
+      try {
+         String filename = "words.txt";
+         String fileDUP = "words.txt";
 
+         // Create a duplicate file
+         BufferedReader reader = new BufferedReader(new FileReader(filename));
+         PrintWriter writer = new PrintWriter(new FileWriter(fileDUP));
+         String line;
+         while ((line = reader.readLine()) != null) {
+               writer.println(line);
+         }
+         reader.close();
+         writer.close();
 
-      // while(!EOF) {
-      //    if(getchar(line) == startLetter) {
-      //       if(i == index)
-      //          return line;
-      //       else {
-      //          index++;
-      //       }
+         // Read from the duplicate file
+         BufferedReader duplicateReader = new BufferedReader(new FileReader(fileDUP));
 
-      //    }
-      // }
-      return "a";
+         // Get a random letter
+         char startLetter = (char) (rand.nextInt(26) + 'A');
+
+         // Find a word starting with the random letter
+         boolean found = false;
+         while (!found && (line = duplicateReader.readLine()) != null) {
+               if (line.charAt(0) == startLetter && line.length() >= 3) {
+                  word = line;
+                  found = true;
+               }
+         }
+         duplicateReader.close();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      return word;
    }
 
    public static void main(String[] args){
