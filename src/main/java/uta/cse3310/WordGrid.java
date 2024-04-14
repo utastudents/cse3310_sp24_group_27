@@ -109,6 +109,12 @@ public class WordGrid {
 
             // if taken, restart loop - this chooses all new coordinates and starts everything again
          }
+
+         // if (found) {
+         //    while(!done) {
+
+         //    }
+         // }
       }
 
    }
@@ -173,32 +179,35 @@ public class WordGrid {
 
    public String getWord(String filename) {
       String word = null;
-      char startLetter = (char) (rand.nextInt(25) + 'a');
-
       try {
-         String fileDUP = "words_duplicate.txt";
-
-         // Create a duplicate file
+         // Open the file for reading
          BufferedReader reader = new BufferedReader(new FileReader(filename));
-         PrintWriter writer = new PrintWriter(new FileWriter(fileDUP));
-         String line;
-         while ((line = reader.readLine()) != null) {
-               if (line.charAt(0) == startLetter && line.length() >= 3) {
-                  word = line;
-                  //nothing, skip it
-               }
-               else {
-                  writer.println(line);
-               }
+         
+         // Count the number of lines in the file
+         int lineCount = 0;
+         while (reader.readLine() != null) {
+               lineCount++;
          }
          reader.close();
-         writer.close();
-
+         
+         // Generate a random index
+         Random rand = new Random();
+         int randomIndex = rand.nextInt(lineCount);
+         
+         // Open the file again to read the word at the random index
+         reader = new BufferedReader(new FileReader(filename));
+         for (int i = 0; i < randomIndex; i++) {
+               reader.readLine(); // Skip lines until reaching the random index
+         }
+         word = reader.readLine(); // Read the word at the random index
+         reader.close();
       } catch (IOException e) {
          e.printStackTrace();
       }
       return word;
    }
+
+   
    // print the grid
    public void printGrid(int gridSize, String shownGrid[][]) {
       for(int i = 0; i < gridSize; i++) {
@@ -219,18 +228,17 @@ public class WordGrid {
    public static void main(String[] args) {
       WordGrid wordGrid = new WordGrid();
       
-      String filename = "words.txt";      
+      String filename = "words.txt";
       int gridSize = 50;
       int numWords = 5;
       int[][] coordinatesList = new int[2][(int) numWords];
       String[][] shownGrid = new String[gridSize][gridSize];
       
       wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
+      
       wordGrid.printGrid(gridSize, shownGrid);
 
       wordGrid.printCoordinatesList(coordinatesList);
-      // System.out.println(coordinatesList[0][numWords], numWords);
-
 
    }
 
