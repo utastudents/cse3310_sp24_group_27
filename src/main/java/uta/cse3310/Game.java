@@ -12,7 +12,7 @@ public class Game {
 
     public String[] Msg;
     public int GameId;
-    public Statistics Stats;
+    public Statistics Stats; 
 
     Game(Statistics s) {
         Stats = s;
@@ -20,14 +20,16 @@ public class Game {
         // initialize it
         ResetBoard();
 
-        Players = PlayerType.XPLAYER;
+        Players = PlayerType.PLAYERONE;
         CurrentTurn = PlayerType.NOPLAYER;
         // Shown to the user, 0 is XPLAYER
         // 1 is OPLAYER
         Msg = new String[2];
         Msg[0] = "Waiting for other player to join";
         Msg[1] = "";
-    }
+        Msg[2] = "";
+        Msg[3] = "";
+    }//***************************************************
     //Annotate board method
     public void Annotate_Board(){
         
@@ -65,9 +67,11 @@ public class Game {
 
     public void StartGame() {
         // X player goes first. Because that is how it is.
-        Msg[0] = "You are X. Your turn";
-        Msg[1] = "You are O. Other players turn";
-        CurrentTurn = PlayerType.XPLAYER;
+        Msg[0] = "You are Player 1. Your turn";
+        Msg[1] = "You are Player 2. Other players turn";
+        Msg[2] = "You are Player 3. Other players turn";
+        Msg[3] = "You are Player 4. Other players turn";
+        CurrentTurn = PlayerType.PLAYERONE;
         Stats.setGamesInProgress(Stats.getGamesInProgress() + 1);
     }
 
@@ -102,8 +106,8 @@ public class Game {
 
         // More specifically, it is a draw if no-one has won, and there
         // are not spots that have not been taken.
-        if (OpenSpots() == 0 && !(CheckBoard(uta.cse3310.PlayerType.OPLAYER)
-                || CheckBoard(uta.cse3310.PlayerType.XPLAYER))) {
+        if (OpenSpots() == 0 && !(CheckBoard(uta.cse3310.PlayerType.PLAYERTWO)
+                || CheckBoard(uta.cse3310.PlayerType.PLAYERONE))) {
             retval = true;
         }
 
@@ -114,10 +118,14 @@ public class Game {
     // It does not depend on the representation of Enums
     public int PlayerToIdx(PlayerType P) {
         int retval = 0;
-        if (P == PlayerType.XPLAYER) {
+        if (P == PlayerType.PLAYERONE) {
             retval = 0;
-        } else {
+        } else if (P == PlayerType.PLAYERTWO) {
             retval = 1;
+        } else if (P == PlayerType.PLAYERTHREE) {
+            retval = 2;
+        } else if (P == PlayerType.PLAYERFOUR) {
+            retval = 3;
         }
         return retval;
     }
@@ -125,7 +133,7 @@ public class Game {
     public void Update(UserEvent U) {
         // System.out.println("The user event is " + U.PlayerIdx + " " + U.Button);
 
-        if ((CurrentTurn == U.PlayerIdx) && (CurrentTurn == PlayerType.OPLAYER || CurrentTurn == PlayerType.XPLAYER)) {
+        if ((CurrentTurn == U.PlayerIdx) && (CurrentTurn == PlayerType.PLAYERTWO || CurrentTurn == PlayerType.PLAYERONE|| CurrentTurn == PlayerType.PLAYERTHREE || CurrentTurn == PlayerType.PLAYERFOUR)) {
             // Move is legitimate, lets do what was requested
 
             // Note that a button is going to be set for every UserEvent !
@@ -134,12 +142,12 @@ public class Game {
             if (Button[U.Button] == PlayerType.NOPLAYER) {
                 // System.out.println("the button was 0, setting it to" + U.PlayerIdx);
                 Button[U.Button] = U.PlayerIdx;
-                if (U.PlayerIdx == PlayerType.OPLAYER) {
-                    CurrentTurn = PlayerType.XPLAYER;
+                if (U.PlayerIdx == PlayerType.PLAYERTWO) {
+                    CurrentTurn = PlayerType.PLAYERONE;
                     Msg[1] = "Other Players Move.";
                     Msg[0] = "Your Move.";
                 } else {
-                    CurrentTurn = PlayerType.OPLAYER;
+                    CurrentTurn = PlayerType.PLAYERONE;
                     Msg[0] = "Other Players Move.";
                     Msg[1] = "Your Move.";
                 }
@@ -149,30 +157,85 @@ public class Game {
 
             // Check for winners, losers, and a draw
 
-            if (CheckBoard(PlayerType.XPLAYER)) {
+            if (CheckBoard(PlayerType.PLAYERONE)) {
                 Msg[0] = "You Win!";
                 Msg[1] = "You Lose!";
                 CurrentTurn = PlayerType.NOPLAYER;
-                Stats.setPlayer1Wins(Stats.getPlayer1Wins() + 1);
-                Stats.setGamesInProgress(Stats.getGamesInProgress() - 1);
-            } else if (CheckBoard(PlayerType.OPLAYER)) {
+                Stats.setPlayer1Wins(Stats.getPlayer1Wins() + 1); 
+                Stats.setGamesInProgress(Stats.getGamesInProgress() - 1); 
+            } else if (CheckBoard(PlayerType.PLAYERTWO)) {
                 Msg[1] = "You Win!";
                 Msg[0] = "You Lose!";
                 CurrentTurn = PlayerType.NOPLAYER;
                 Stats.setPlayer2Wins(Stats.getPlayer2Wins() + 1);
-                Stats.setGamesInProgress(Stats.getGamesInProgress() - 1);
+                Stats.setGamesInProgress(Stats.getGamesInProgress() - 1); 
+            } else if (CheckBoard(PlayerType.PLAYERTHREE)) {
+                Msg[2] = "You Win!";
+                Msg[3] = "You Lose!";
+                CurrentTurn = PlayerType.NOPLAYER;
+                Stats.setPlayer3Wins(Stats.getPlayer3Wins() + 1); 
+                Stats.setGamesInProgress(Stats.getGamesInProgress() - 1); 
+            } else if (CheckBoard(PlayerType.PLAYERFOUR)) {
+                Msg[3] = "You Win!";
+                Msg[2] = "You Lose!";
+                CurrentTurn = PlayerType.NOPLAYER;
+                Stats.setPlayer4Wins(Stats.getPlayer4Wins() + 1); 
+                Stats.setGamesInProgress(Stats.getGamesInProgress() - 1); 
                 
             } else if (CheckDraw(U.PlayerIdx)) {
                 Msg[0] = "Draw";
                 Msg[1] = "Draw";
+                Msg[2] = "Draw";
+                Msg[3] = "Draw";
                 CurrentTurn = PlayerType.NOPLAYER;
-                Stats.setDraws(Stats.getDraws() + 1);
-                Stats.setGamesInProgress(Stats.getGamesInProgress() - 1);
+                Stats.setDraws(Stats.getDraws() + 1); 
+                Stats.setGamesInProgress(Stats.getGamesInProgress() - 1); 
             
             }
+                
         }
     }
     
+//*************** Method to check words in the grid and award points based on word length ******************************
+public int checkAndAwardPoints(String[][] shownGrid, int[][] coordinatesList) {
+    int totalPoints = 0;
+
+    // Iterate through the entire grid
+    for (int i = 0; i < shownGrid.length; i++) {
+        for (int j = 0; j < shownGrid[i].length; j++) {
+            // Check if a word is present at the current cell
+            if (!shownGrid[i][j].equals("*")) {
+                String word = shownGrid[i][j];
+                // Get length of word
+                int wordLength = word.length();
+                // Calculate the points based on word length
+                int points = calculatePoints(wordLength);
+                // Add points to total
+                totalPoints += points;
+            }
+        }
+    }
+    // Return total points
+    return totalPoints;
+}
+
+//***********  Method to set points based on word length ***************
+private int calculatePoints(int wordLength) {
+    if (wordLength >= 3) {
+        return 2;
+    } else if (wordLength >= 5) {
+        return 3; 
+    } else {
+        return 0; 
+    }
+}
+//********************************************************************************
+
+public Integer Leader_board() {
+    return Stats.leaderBoard();
+}
+
+
     public String[] Messaging(){
         //will return a string array
         String return_value[] = {};
@@ -180,5 +243,3 @@ public class Game {
     }
 
 }
-// In windows, shift-alt-F formats the source code
-// In linux, it is ctrl-shift-I

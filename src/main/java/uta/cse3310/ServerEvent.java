@@ -4,7 +4,5 @@ public class ServerEvent {
     PlayerType YouAre; // Either a PLAYERONE or a PLAYERTWO
     int GameId;
     
-    public void ServerEvent() {
-        
-    }
+
 }
