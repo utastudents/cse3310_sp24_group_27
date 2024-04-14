@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.io.File;
 
 
 public class WordGrid {
@@ -14,7 +15,7 @@ public class WordGrid {
    Random rand = new Random();
 
    // generate both grids (coordinatesList and shownGrid)
-   public void generateGrid(int gridSize, double numWords, FILE file, int[][] coordinatesList, String[][] shownGrid){
+   public void generateGrid(int gridSize, double numWords, String filename, int[][] coordinatesList, String[][] shownGrid){
       
       // initial fill with * in every spot to show availability
       for(int i = 0; i < gridSize; i++){
@@ -28,7 +29,7 @@ public class WordGrid {
       // while you're not done filling in all the words yet
       for(int wordsNum = 0; wordsNum < numWords; wordsNum++) {
          
-         String word = getWord();
+         String word = getWord(filename);
 
          // while space for the word hasn't been found
          while(!found) {
@@ -124,10 +125,10 @@ public class WordGrid {
    //    return word;
    // }
 
-   public String getWord() {
+   public String getWord(String filename) {
       String word = null;
       try {
-         String filename = "words.txt";
+         // String filename = "words.txt";
          String fileDUP = "words.txt";
 
          // Create a duplicate file
@@ -161,14 +162,29 @@ public class WordGrid {
       return word;
    }
 
-   public static void main(String[] args){
 
-      // generateGrid(50, 10, List<String> words, String coordinatesList[][], shownGrid[][]);
-      // for(int i = 0; i < 50; i++){
-      //    for(int k = 0; k < 50; k++){
-      //       System.out.print(shownGrid[i][k]);
-      //    }
-      // }
+   // print the grid
+   public void printGrid(int gridSize, String shownGrid[][]) {
+      for(int i = 0; i < gridSize; i++) {
+         for(int k = 0; k < gridSize; k++) {
+            System.out.print(shownGrid[i][k] + " ");
+         }
+         System.out.println();
+      }
+   }
+
+   public static void main(String[] args) {
+      WordGrid wordGrid = new WordGrid();
+      
+      String filename = "words.txt";      
+      int gridSize = 27;
+      double numWords = 5;
+      int[][] coordinatesList = new int[2][gridSize];
+      String[][] shownGrid = new String[gridSize][gridSize];
+      
+      wordGrid.printGrid(gridSize, shownGrid);
+
+      // wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
       
    }
 
