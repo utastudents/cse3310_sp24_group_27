@@ -36,19 +36,19 @@ public class WordGrid {
 
          // while space for the word hasn't been found
          while(!found) {
-            int randX = rand.nextInt(49);
-            int randY = rand.nextInt(49);
+            int randX = rand.nextInt(gridSize-1);
+            int randY = rand.nextInt(gridSize-1);
             int xVal = randX;
             int yVal = randY;
             int sizeSoFar = 1;
-            int direction = rand.nextInt(4);
+            int direction = rand.nextInt(4); //up, down, right, up-right, up-right
             boolean taken = false;
 
             // while the space for the word at the random coordinate isn't taken
             while(sizeSoFar <= word.length() && !taken) {
                //up
                if(direction == 0) {
-                  if(shownGrid[xVal][yVal] == "*") {
+                  if(shownGrid[xVal][yVal] == "*") { //  || shownGrid[xVal][yVal].equals(word.charAt(sizeSoFar))
                      yVal++;
                   }
                   else {
@@ -66,7 +66,7 @@ public class WordGrid {
                   }
                }
 
-               //left
+               //right
                else if(direction == 2) {
                   if(shownGrid[xVal][yVal] == "*") {
                      xVal++;
@@ -87,7 +87,7 @@ public class WordGrid {
                   }
                }
 
-               //down-left
+               //down-right
                else {
                   if(shownGrid[xVal][yVal] == "*") {
                      xVal--;
@@ -114,27 +114,68 @@ public class WordGrid {
    }
 
    /*
-   public String getWord() {
-      //get file
-      //duplicate file
-      //read duplicate file
-      
-      //get random letter
-      //get random index
-      //find word starting with random letter in duplicate file
-         //if word is shorter than 3 letters, move on
-      //increase index counter and move on until out of words beginning with the selected letter
-      //return as "word"
-      return word;
-   } */
+   getWord pseudocode
+      getWord(filename)
+         //get file
+         //duplicate file
+         //read duplicate file
+         
+         //get random letter
+         //get random index
+         //find word starting with random letter in duplicate file
+            //if word is shorter than 3 letters, move on
+         //increase index counter and move on until out of words beginning with the selected letter
+         //return as "word"
+         return word;
+   */
 
-   
+   /*
    public String getWord(String filename) {
       String word = null;
       char startLetter = (char) (rand.nextInt(25) + 'a');
 
       try {
          // String filename = "words.txt";
+         String fileDUP = "words_duplicate.txt";
+
+         // Create a duplicate file
+         BufferedReader reader = new BufferedReader(new FileReader(filename));
+         PrintWriter writer = new PrintWriter(new FileWriter(fileDUP));
+         String line;
+         // File file = new File(fileDUP);
+         // if(file.length() == 0){
+            while ((line = reader.readLine()) != null) {
+                  if (line.charAt(0) == startLetter && line.length() >= 3) {
+                     word = line;
+                     writer.println();
+                  }
+                  else {
+                     writer.println(line);
+                  }
+            }
+         // }
+         // else {
+         //    while ((line = reader.readLine()) != null) {
+         //       if (line.equals(word)) {
+         //          writer.println();
+         //       }
+         //    }
+         // }
+         reader.close();
+         writer.close();
+
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      return word;
+   }
+   */
+
+   public String getWord(String filename) {
+      String word = null;
+      char startLetter = (char) (rand.nextInt(25) + 'a');
+
+      try {
          String fileDUP = "words_duplicate.txt";
 
          // Create a duplicate file
@@ -153,68 +194,11 @@ public class WordGrid {
          reader.close();
          writer.close();
 
-         // Read from the duplicate file
-         // BufferedReader duplicateReader = new BufferedReader(new FileReader(fileDUP));
-
-
-         // Find a word starting with the random letter
-         // boolean found = false;
-         // while (!found && (line = duplicateReader.readLine()) != null) {
-         //       if (line.charAt(0) == startLetter && line.length() >= 3) {
-         //          word = line;
-         //          found = true;
-         //       }
-         // }
-         // duplicateReader.close();
       } catch (IOException e) {
          e.printStackTrace();
       }
       return word;
    }
-   
-/*
-  public String getWord(String filename) {
-    String word = null;
-    try {
-        // Get a random letter
-        char startLetter = (char) (rand.nextInt(25) + 'a');
-        int randNum = rand.nextInt(5);
-        int counter = 0;
-        System.out.println(startLetter);
-
-        // Create a duplicate file
-        String fileDUP = "words.txt";
-        PrintWriter writer = new PrintWriter(new FileWriter(fileDUP));
-
-        // Read from the original file
-        BufferedReader reader = new BufferedReader(new FileReader(filename));
-
-        // Find a word starting with the random letter and write it to the duplicate file
-        boolean found = false;
-        String line;
-        while (!found && (line = reader.readLine()) != null) {
-            if (line.charAt(0) == startLetter && line.length() >= 3) {
-               if(counter == randNum) {
-                  word = line;
-                  found = true;
-               }
-               else {
-                  counter++;
-               }
-            }
-            else {
-                // Write lines that are not selected to the duplicate file
-                writer.println(line);
-            }
-        }
-        reader.close();
-        writer.close();
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-    return word;
-}
-*/
    // print the grid
    public void printGrid(int gridSize, String shownGrid[][]) {
       for(int i = 0; i < gridSize; i++) {
@@ -225,18 +209,27 @@ public class WordGrid {
       }
    }
 
+   public void printCoordinatesList(int[][] coordinatesList) {
+      for(int set = 0; set < coordinatesList[0].length; set++) {
+         System.out.println(coordinatesList[0][set] + " " + coordinatesList[1][set]);
+      }
+   }
+
+
    public static void main(String[] args) {
       WordGrid wordGrid = new WordGrid();
       
       String filename = "words.txt";      
       int gridSize = 50;
-      double numWords = 4;
+      int numWords = 5;
       int[][] coordinatesList = new int[2][(int) numWords];
       String[][] shownGrid = new String[gridSize][gridSize];
       
-      // wordGrid.printGrid(gridSize, shownGrid);
       wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
-      // wordGrid.printGrid(gridSize, shownGrid);
+      wordGrid.printGrid(gridSize, shownGrid);
+
+      wordGrid.printCoordinatesList(coordinatesList);
+      // System.out.println(coordinatesList[0][numWords], numWords);
 
 
    }
