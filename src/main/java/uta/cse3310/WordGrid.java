@@ -29,7 +29,9 @@ public class WordGrid {
       // while you're not done filling in all the words yet
       for(int wordsNum = 0; wordsNum < numWords; wordsNum++) {
          
-         String word = getWord(filename);
+         // String word = getWord(filename);
+         String word = "a";
+         found = false;
 
          // while space for the word hasn't been found
          while(!found) {
@@ -100,8 +102,8 @@ public class WordGrid {
 
             if(!taken) {
                found = true;
-               coordinatesList[1][wordsNum] = randX;
-               coordinatesList[wordsNum][1] = randY;
+               coordinatesList[0][wordsNum] = randX;
+               coordinatesList[1][wordsNum] = randY;
             }
 
             // if taken, restart loop - this chooses all new coordinates and starts everything again
@@ -177,14 +179,14 @@ public class WordGrid {
       WordGrid wordGrid = new WordGrid();
       
       String filename = "words.txt";      
-      int gridSize = 27;
+      int gridSize = 50;
       double numWords = 5;
-      int[][] coordinatesList = new int[2][gridSize];
+      int[][] coordinatesList = new int[2][(int) numWords];
       String[][] shownGrid = new String[gridSize][gridSize];
       
       wordGrid.printGrid(gridSize, shownGrid);
 
-      // wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
+      wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
       
    }
 
