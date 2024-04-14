@@ -28,29 +28,42 @@ public class WordGrid {
       // while you're not done filling in all the words yet
       for(int wordsNum = 0; wordsNum < numWords; wordsNum++) {
          
-         boolean found = false, done = false;
+         boolean placed = false, done = false, entireWord = false;
          String word = getWord("words.txt");
          System.out.println(word);
-         int   randX = rand.nextInt(gridSize-1), 
-               randY = rand.nextInt(gridSize-1), 
+         // int   randX = rand.nextInt(gridSize-1), 
+         //       randY = rand.nextInt(gridSize-1), 
+         int   randX = rand.nextInt(49), 
+               randY = rand.nextInt(49), 
                xVal = randX, 
                yVal = randY, 
                direction = rand.nextInt(4); //up, down, right, up-right, up-right
          int index = 0, sizeSoFar;
 
-         // while space for the word hasn't been found
-         while(!found) {
+         // while space for the word hasn't been placed
+         while(!placed) {
             // randX = rand.nextInt(gridSize-1);
             // randY = rand.nextInt(gridSize-1);
             sizeSoFar = 1;
             boolean taken = false;
 
             // while the space for the word at the random coordinate isn't taken
-            while(sizeSoFar <= word.length() && !taken) {
+            while(sizeSoFar <= word.length() && !taken && !entireWord) {
+               // if(xVal + 1 < 50 && xVal - 1 > -1 && yVal + 1 < 50 && yVal - 1 > -1) {
+
+               // }
                //up
                if(direction == 0) {
                   if(shownGrid[xVal][yVal] == '*') { //  || shownGrid[xVal][yVal].equals(word.charAt(sizeSoFar))
-                     yVal++;
+                     if(yVal - 1 > -1) {
+                        yVal--;
+                     }
+                     else if(sizeSoFar == word.length()) {
+                        taken = true;
+                     }
+                     else {
+                        taken = true;
+                     }
                   }
                   else {
                      taken = true;
@@ -60,7 +73,15 @@ public class WordGrid {
                //down
                else if(direction == 1) {
                   if(shownGrid[xVal][yVal] == '*') {
-                     yVal--;
+                     if(yVal + 1 < gridSize) {
+                        yVal++;
+                     }
+                     else if(sizeSoFar == word.length()) {
+                        entireWord = true;
+                     }
+                     else {
+                        taken = true;
+                     }
                   }
                   else {
                      taken = true;
@@ -70,7 +91,15 @@ public class WordGrid {
                //right
                else if(direction == 2) {
                   if(shownGrid[xVal][yVal] == '*') {
-                     xVal++;
+                     if(xVal + 1 < gridSize) {
+                        xVal++;
+                     }
+                     else if(sizeSoFar == word.length()) {
+                        entireWord = true;
+                     }
+                     else {
+                        taken = true;
+                     }
                   }
                   else {
                      taken = true;
@@ -80,8 +109,16 @@ public class WordGrid {
                //up-right
                else if(direction == 3) {
                   if(shownGrid[xVal][yVal] == '*') {
-                     xVal++;
-                     yVal++;
+                     if(yVal + 1 < gridSize && xVal + 1 < gridSize) {
+                        yVal++;
+                        xVal++;
+                     }
+                     else if(sizeSoFar == word.length()) {
+                        entireWord = true;
+                     }
+                     else {
+                        taken = true;
+                     }
                   }
                   else {
                      taken = true;
@@ -91,8 +128,16 @@ public class WordGrid {
                //down-right
                else {
                   if(shownGrid[xVal][yVal] == '*') {
-                     xVal--;
-                     yVal--;
+                     if(yVal - 1 < -1 && xVal - 1 < -1) {
+                        yVal--;
+                        xVal--;
+                     }
+                     else if(sizeSoFar == word.length()) {
+                        entireWord = true;
+                     }
+                     else {
+                        taken = true;
+                     }
                   }
                   else {
                      taken = true;
@@ -103,13 +148,17 @@ public class WordGrid {
             }
 
             if(!taken) {
-               found = true;
+               placed = true;
                coordinatesList[0][wordsNum] = randX;
                coordinatesList[1][wordsNum] = randY;
             }
             else {
-               randX = rand.nextInt(gridSize-1);
-               randY = rand.nextInt(gridSize-1);
+               // randX = rand.nextInt(gridSize-1);
+               // randY = rand.nextInt(gridSize-1);
+               randX = rand.nextInt(49);
+               randY = rand.nextInt(49);
+                  xVal = randX;
+                  yVal = randY;
             }
 
             // if taken, restart loop - this chooses all new coordinates and starts everything again
