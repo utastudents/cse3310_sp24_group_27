@@ -29,8 +29,9 @@ public class WordGrid {
       // while you're not done filling in all the words yet
       for(int wordsNum = 0; wordsNum < numWords; wordsNum++) {
          
-         // String word = getWord(filename);
-         String word = "a";
+         String word = getWord("words.txt");
+         System.out.println(word);
+         // String word = "a";
          found = false;
 
          // while space for the word hasn't been found
@@ -112,59 +113,108 @@ public class WordGrid {
 
    }
 
-
-   // public String getWord() {
-   //    //get file
-   //    //duplicate file
-   //    //read duplicate file
+   /*
+   public String getWord() {
+      //get file
+      //duplicate file
+      //read duplicate file
       
-   //    //get random letter
-   //    //get random index
-   //    //find word starting with random letter in duplicate file
-   //       //if word is shorter than 3 letters, move on
-   //    //increase index counter and move on until out of words beginning with the selected letter
-   //    //return as "word"
-   //    return word;
-   // }
+      //get random letter
+      //get random index
+      //find word starting with random letter in duplicate file
+         //if word is shorter than 3 letters, move on
+      //increase index counter and move on until out of words beginning with the selected letter
+      //return as "word"
+      return word;
+   } */
 
+   
    public String getWord(String filename) {
       String word = null;
+      char startLetter = (char) (rand.nextInt(25) + 'a');
+
       try {
          // String filename = "words.txt";
-         String fileDUP = "words.txt";
+         String fileDUP = "words_duplicate.txt";
 
          // Create a duplicate file
          BufferedReader reader = new BufferedReader(new FileReader(filename));
          PrintWriter writer = new PrintWriter(new FileWriter(fileDUP));
          String line;
          while ((line = reader.readLine()) != null) {
-               writer.println(line);
+               if (line.charAt(0) == startLetter && line.length() >= 3) {
+                  word = line;
+                  //nothing, skip it
+               }
+               else {
+                  writer.println(line);
+               }
          }
          reader.close();
          writer.close();
 
          // Read from the duplicate file
-         BufferedReader duplicateReader = new BufferedReader(new FileReader(fileDUP));
+         // BufferedReader duplicateReader = new BufferedReader(new FileReader(fileDUP));
 
-         // Get a random letter
-         char startLetter = (char) (rand.nextInt(26) + 'A');
 
          // Find a word starting with the random letter
-         boolean found = false;
-         while (!found && (line = duplicateReader.readLine()) != null) {
-               if (line.charAt(0) == startLetter && line.length() >= 3) {
-                  word = line;
-                  found = true;
-               }
-         }
-         duplicateReader.close();
+         // boolean found = false;
+         // while (!found && (line = duplicateReader.readLine()) != null) {
+         //       if (line.charAt(0) == startLetter && line.length() >= 3) {
+         //          word = line;
+         //          found = true;
+         //       }
+         // }
+         // duplicateReader.close();
       } catch (IOException e) {
          e.printStackTrace();
       }
       return word;
    }
+   
+/*
+  public String getWord(String filename) {
+    String word = null;
+    try {
+        // Get a random letter
+        char startLetter = (char) (rand.nextInt(25) + 'a');
+        int randNum = rand.nextInt(5);
+        int counter = 0;
+        System.out.println(startLetter);
 
+        // Create a duplicate file
+        String fileDUP = "words.txt";
+        PrintWriter writer = new PrintWriter(new FileWriter(fileDUP));
 
+        // Read from the original file
+        BufferedReader reader = new BufferedReader(new FileReader(filename));
+
+        // Find a word starting with the random letter and write it to the duplicate file
+        boolean found = false;
+        String line;
+        while (!found && (line = reader.readLine()) != null) {
+            if (line.charAt(0) == startLetter && line.length() >= 3) {
+               if(counter == randNum) {
+                  word = line;
+                  found = true;
+               }
+               else {
+                  counter++;
+               }
+            }
+            else {
+                // Write lines that are not selected to the duplicate file
+                writer.println(line);
+            }
+        }
+        reader.close();
+        writer.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    return word;
+}
+*/
    // print the grid
    public void printGrid(int gridSize, String shownGrid[][]) {
       for(int i = 0; i < gridSize; i++) {
@@ -180,14 +230,15 @@ public class WordGrid {
       
       String filename = "words.txt";      
       int gridSize = 50;
-      double numWords = 5;
+      double numWords = 4;
       int[][] coordinatesList = new int[2][(int) numWords];
       String[][] shownGrid = new String[gridSize][gridSize];
       
-      wordGrid.printGrid(gridSize, shownGrid);
-
+      // wordGrid.printGrid(gridSize, shownGrid);
       wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
-      
+      // wordGrid.printGrid(gridSize, shownGrid);
+
+
    }
 
 }
