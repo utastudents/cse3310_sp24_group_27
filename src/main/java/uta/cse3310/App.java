@@ -168,6 +168,16 @@ System.out
     Gson gson = builder.create();
     UserEvent U = gson.fromJson(message, UserEvent.class);
 
+    //New code for chatbox functionality:
+
+    if ("chat".equals(U.Type)) {
+      // Chat message
+      // Send the message to everyone
+      broadcast(message);
+      return;
+    }
+
+    
     // Update the running time
     stats.setRunningTime(Duration.between(startTime, Instant.now()).toSeconds());
 
