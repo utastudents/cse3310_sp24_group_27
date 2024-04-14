@@ -7,45 +7,108 @@ public class WordGrid {
 
    Random rand = new Random();
 
-   // generate both grids (asteriskGrid and shownGrid)
-   public void generateGrid(int gridSize, double numWords, List<String> words, String[][] asteriskGrid, String[][] shownGrid){
+   // generate both grids (coordinatesList and shownGrid)
+   public void generateGrid(int gridSize, double numWords, List<String> words, String[][] coordinatesList, String[][] shownGrid){
       
-      /* 
-         key to the shown grid, ex: * * * * * w o r d * *
-            char asteriskGrid[gridSize][gridSize]
-
-         the word grid actually shown to the players ex: h j l o y w o r d q r
-            char shownGrid[gridSize][gridSize]
-      */
-
       // initial fill of the asteriskGrid with * in every spot
-      for(int i = 0; i < gridSize; i++){
-         for(int k = 0; k < gridSize; k++){
-            asteriskGrid[i][k] = "*";
-         }
-      }
+      // for(int i = 0; i < gridSize; i++){
+      //    for(int k = 0; k < gridSize; k++){
+      //       shownGrid[i][k] = "*";
+      //    }
+      // }
+
+      boolean found = false;
 
       for(int i = 0; i < gridSize; i++) {
          for(int k = 0; k < gridSize; k++){
             for(int p = 1; p <= numWords; p++){
                // String word = getWord();
 
-               // up, down, right, upright, downright
-               int direction = rand.nextInt(4);
+               // up, down, right, up-right, down-right
+               // int direction = rand.nextInt(4);
 
-               // switch(direction) {
-               //    case 0: 
-               // }
-               
+
             }
+         }
+      }
+
+      while(!found) {
+         int randX = rand.nextInt(49);
+         int randY = rand.nextInt(49);
+         int xVal = randX;
+         int yVal = randY;
+         int sizeSoFar = 1;
+         int direction = rand.nextInt(4);
+         boolean taken = false;
+
+         // while(sizeSoFar <= strlen(word) && !taken) {
+         while(!taken) {
+            //up
+            if(direction == 0) {
+               if(shownGrid[xVal][yVal] == "*") {
+                  yVal++;
+               }
+               else {
+                  taken = true;
+               }
+            }
+
+            //down
+            else if(direction == 1) {
+               if(shownGrid[xVal][yVal] == "*") {
+                  yVal--;
+               }
+               else {
+                  taken = true;
+               }
+            }
+
+            //left
+            else if(direction == 2) {
+               if(shownGrid[xVal][yVal] == "*") {
+                  xVal++;
+               }
+               else {
+                  taken = true;
+               }
+            }
+
+            //up-right
+            else if(direction == 3) {
+               if(shownGrid[xVal][yVal] == "*") {
+                  xVal++;
+                  yVal++;
+               }
+               else {
+                  taken = true;
+               }
+            }
+
+            //down-left
+            else {
+               if(shownGrid[xVal][yVal] == "*") {
+                  xVal--;
+                  yVal--;
+               }
+               else {
+                  taken = true;
+               }
+            }
+
+            sizeSoFar++;
+         }
+         if(!taken) {
+            found = true;
+            
          }
       }
 
    }
 
+
    public String getWord() {
-      // int randNum = rand.nextInt(25);
-      // String word;
+   //    // int randNum = rand.nextInt(25);
+   //    // String word;
 
 
       // while(!EOF) {
@@ -63,7 +126,7 @@ public class WordGrid {
 
    public static void main(String[] args){
       // generateGrid(50, 10, )
-      // System.out.print("k");
+      System.out.print("k");
    }
 
 }
