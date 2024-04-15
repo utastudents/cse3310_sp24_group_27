@@ -15,7 +15,7 @@ public class WordGrid {
    Random rand = new Random();
 
    // generate both grids (coordinatesList and shownGrid)
-   public void generateGrid(int gridSize, double numWords, String filename, int[][] coordinatesList, char[][] shownGrid){
+   public void generateGrid(int gridSize, int numWords, String filename, int[][] coordinatesList, char[][] shownGrid){
       
       // initial fill with * in every spot to show availability
       for(int i = 0; i < gridSize; i++){
@@ -54,7 +54,7 @@ public class WordGrid {
                // }
                //up
                if(direction == 0) {
-                  if(shownGrid[xVal][yVal] == '*') { //  || shownGrid[xVal][yVal].equals(word.charAt(sizeSoFar))
+                  if(shownGrid[xVal][yVal] == '*' || shownGrid[xVal][yVal] == (word.charAt(sizeSoFar-1))) { //  || shownGrid[xVal][yVal].equals(word.charAt(sizeSoFar-1))
                      if(yVal - 1 > -1) {
                         yVal--;
                      }
@@ -72,7 +72,7 @@ public class WordGrid {
 
                //down
                else if(direction == 1) {
-                  if(shownGrid[xVal][yVal] == '*') {
+                  if(shownGrid[xVal][yVal] == '*' || shownGrid[xVal][yVal] == (word.charAt(sizeSoFar-1))) {
                      if(yVal + 1 < gridSize) {
                         yVal++;
                      }
@@ -90,7 +90,7 @@ public class WordGrid {
 
                //right
                else if(direction == 2) {
-                  if(shownGrid[xVal][yVal] == '*') {
+                  if(shownGrid[xVal][yVal] == '*' || shownGrid[xVal][yVal] == (word.charAt(sizeSoFar-1))) {
                      if(xVal + 1 < gridSize) {
                         xVal++;
                      }
@@ -108,7 +108,7 @@ public class WordGrid {
 
                //up-right
                else if(direction == 3) {
-                  if(shownGrid[xVal][yVal] == '*') {
+                  if(shownGrid[xVal][yVal] == '*' || shownGrid[xVal][yVal] == (word.charAt(sizeSoFar-1))) {
                      if(yVal + 1 < gridSize && xVal + 1 < gridSize) {
                         yVal++;
                         xVal++;
@@ -127,7 +127,7 @@ public class WordGrid {
 
                //down-right
                else {
-                  if(shownGrid[xVal][yVal] == '*') {
+                  if(shownGrid[xVal][yVal] == '*' || shownGrid[xVal][yVal] == (word.charAt(sizeSoFar-1))) {
                      if(yVal - 1 < -1 && xVal - 1 < -1) {
                         yVal--;
                         xVal--;
@@ -153,8 +153,6 @@ public class WordGrid {
                coordinatesList[1][wordsNum] = randY;
             }
             else {
-               // randX = rand.nextInt(gridSize-1);
-               // randY = rand.nextInt(gridSize-1);
                randX = rand.nextInt(49);
                randY = rand.nextInt(49);
                   xVal = randX;
@@ -164,12 +162,7 @@ public class WordGrid {
             // if taken, restart loop - this chooses all new coordinates and starts everything again
          }
 
-         // System.out.println("direction" + direction);
          while(!done) {
-
-            // System.out.println("randx " + randX);
-            // System.out.println("rand y " + randY);
-            // System.out.println("index " + index);
             
             shownGrid[randX][randY] = word.charAt(index);
 
@@ -266,7 +259,8 @@ public class WordGrid {
    public void printGrid(int gridSize, char shownGrid[][]) {
       for(int i = 0; i < gridSize; i++) {
          for(int k = 0; k < gridSize; k++) {
-            System.out.print(shownGrid[i][k] + " ");
+            if(shownGrid[i][k] == '*') System.out.print("  ");
+            else System.out.print(shownGrid[i][k] + " ");
          }
          System.out.println();
       }
@@ -284,7 +278,7 @@ public class WordGrid {
       
       String filename = "words.txt";
       int gridSize = 50;
-      int numWords = 100;
+      int numWords = 150;
       int[][] coordinatesList = new int[2][(int) numWords];
       char[][] shownGrid = new char[gridSize][gridSize];
       
@@ -293,6 +287,7 @@ public class WordGrid {
       wordGrid.printGrid(gridSize, shownGrid);
 
       wordGrid.printCoordinatesList(coordinatesList);
+
 
    }
 
