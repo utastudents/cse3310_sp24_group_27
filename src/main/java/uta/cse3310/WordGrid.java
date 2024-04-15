@@ -164,26 +164,30 @@ public class WordGrid {
             // if taken, restart loop - this chooses all new coordinates and starts everything again
          }
 
-
+         // System.out.println("direction" + direction);
          while(!done) {
 
+            // System.out.println("randx " + randX);
+            // System.out.println("rand y " + randY);
+            // System.out.println("index " + index);
+            
             shownGrid[randX][randY] = word.charAt(index);
 
             // up
             if(direction == 0) {
+               randY--;
+               index++;
+            }
+
+            // down
+            else if(direction == 1) {
                randY++;
                index++;
             }
 
             // right
-            else if(direction == 1) {
-               randX++;
-               index++;
-            }
-
-            // down
             else if(direction == 2) {
-               randY--;
+               randX++;
                index++;
             }
 
@@ -280,17 +284,16 @@ public class WordGrid {
       
       String filename = "words.txt";
       int gridSize = 50;
-      int numWords = 10;
+      int numWords = 100;
       int[][] coordinatesList = new int[2][(int) numWords];
       char[][] shownGrid = new char[gridSize][gridSize];
       
-      // wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
+      wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
       
-      // wordGrid.printGrid(gridSize, shownGrid);
+      wordGrid.printGrid(gridSize, shownGrid);
 
-      // wordGrid.printCoordinatesList(coordinatesList);
+      wordGrid.printCoordinatesList(coordinatesList);
 
    }
 
 }
-
