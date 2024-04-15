@@ -231,7 +231,7 @@ private int calculatePoints(int wordLength) {
 }
 //********************************************************************************
 
-public Integer Leader_board() {
+public String Leader_board() {
     return Stats.leaderBoard();
 }
 
