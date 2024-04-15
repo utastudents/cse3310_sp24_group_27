@@ -98,7 +98,7 @@ public class App extends WebSocketServer {
     // search for a game needing a player
     Game G = null;
     for (Game i : ActiveGames) {
-      if (i.Players == uta.cse3310.PlayerType.XPLAYER) {
+      if (i.Players == uta.cse3310.PlayerType.PLAYERONE) {
         G = i;
         System.out.println("found a match");
       }
@@ -110,13 +110,13 @@ public class App extends WebSocketServer {
       G.GameId = GameId;
       GameId++;
       // Add the first player
-      G.Players = PlayerType.XPLAYER;
+      G.Players = PlayerType.PLAYERONE;
       ActiveGames.add(G);
       System.out.println(" creating a new Game");
     } else {
       // join an existing game
       System.out.println(" not a new game");
-      G.Players = PlayerType.OPLAYER;
+      G.Players = PlayerType.PLAYERTWO;
       G.StartGame();
     }
 
@@ -234,10 +234,22 @@ System.out
   public static void main(String[] args) {
     
     // Set up the http server
+    String HttpPort = System.getenv("HTTP_PORT");
     int port = 9080;
+
+    if (HttpPort!=null) {
+      port = Integer.valueOf(HttpPort);
+    }
+
     HttpServer H = new HttpServer(port, "./html");
     H.start();
     System.out.println("http Server started on port: " + port);
+
+    port = 9180;
+    String WSPort = System.getenv("WEBSOCKET_PORT");
+    if (WSPort!=null) {
+      port = Integer.valueOf(WSPort);
+    }
 
     // create and start the websocket server
 
