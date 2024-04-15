@@ -124,6 +124,8 @@ public class Statistics {
                 break;
             case NOPLAYER:
                 break;
+            default:
+                break;
         }
     }
 
