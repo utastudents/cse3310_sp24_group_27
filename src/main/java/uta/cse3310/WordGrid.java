@@ -274,8 +274,8 @@ public class WordGrid {
       wordGrid.printGrid(gridSize, shownGrid);
 
       wordGrid.printCoordinatesList(coordinatesList);
-*/
+
 
    }
-
+*/
 }
