@@ -1,5 +1,9 @@
 package uta.cse3310;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 public class Statistics {
     // this class stores global statistics of the
     // program
@@ -28,7 +32,7 @@ public class Statistics {
         player1Wins = 0;
         player2Wins = 0;
         player3Wins = 0;
-        player4wins = 0;
+        player4Wins = 0;
         Draws = 0;
         GamesInProgress = 0;
         player1Rank = 0;
@@ -86,7 +90,7 @@ public class Statistics {
     }
 
     public void setGamesInProgress(Integer gamesInProgress) {
-        this.gamesInProgress = gamesInProgress;
+        this.GamesInProgress = gamesInProgress;
     }
 
     public Integer getPlayerRank(PlayerType player) {
@@ -120,6 +124,8 @@ public class Statistics {
                 break;
             case NOPLAYER:
                 break;
+            default:
+                break;
         }
     }
 
@@ -138,7 +144,7 @@ public class Statistics {
     }
 
     public Integer checkAndAwardPoints(String[][] shownGrid, int[][] coordinatesList) {
-        return checkAndAwardPoint;
+        return checkAndAwardPoints(null, null);
     }
 
     private void calculatePlayerRanks() {
