@@ -30,9 +30,6 @@ public class WordGrid {
          
          boolean placed = false, done = false, entireWord = false;
          String word = getWord("words.txt");
-         System.out.println(word);
-         // int   randX = rand.nextInt(gridSize-1), 
-         //       randY = rand.nextInt(gridSize-1), 
          int   randX = rand.nextInt(49), 
                randY = rand.nextInt(49), 
                xVal = randX, 
@@ -42,16 +39,12 @@ public class WordGrid {
 
          // while space for the word hasn't been placed
          while(!placed) {
-            // randX = rand.nextInt(gridSize-1);
-            // randY = rand.nextInt(gridSize-1);
             sizeSoFar = 1;
             boolean taken = false;
 
             // while the space for the word at the random coordinate isn't taken
             while(sizeSoFar <= word.length() && !taken && !entireWord) {
-               // if(xVal + 1 < 50 && xVal - 1 > -1 && yVal + 1 < 50 && yVal - 1 > -1) {
 
-               // }
                //up
                if(direction == 0) {
                   if(shownGrid[xVal][yVal] == '*' || shownGrid[xVal][yVal] == (word.charAt(sizeSoFar-1))) { //  || shownGrid[xVal][yVal].equals(word.charAt(sizeSoFar-1))
@@ -149,8 +142,8 @@ public class WordGrid {
 
             if(!taken) {
                placed = true;
-               coordinatesList[0][wordsNum] = randX;
-               coordinatesList[1][wordsNum] = randY;
+               coordinatesList[0][wordsNum] = randY;
+               coordinatesList[1][wordsNum] = randX;
             }
             else {
                randX = rand.nextInt(49);
@@ -206,23 +199,9 @@ public class WordGrid {
          
       }
 
-   }
+      randomizeSpaces(gridSize, shownGrid);
 
-   /*
-   getWord pseudocode
-      getWord(filename)
-         //get file
-         //duplicate file
-         //read duplicate file
-         
-         //get random letter
-         //get random index
-         //find word starting with random letter in duplicate file
-            //if word is shorter than 3 letters, move on
-         //increase index counter and move on until out of words beginning with the selected letter
-         //return as "word"
-         return word;
-   */
+   }
 
    public String getWord(String filename) {
       String word = null;
@@ -254,7 +233,6 @@ public class WordGrid {
       return word;
    }
 
-   
    // print the grid
    public void printGrid(int gridSize, char shownGrid[][]) {
       for(int i = 0; i < gridSize; i++) {
@@ -272,7 +250,16 @@ public class WordGrid {
       }
    }
 
+   public void randomizeSpaces(int gridSize, char shownGrid[][]) {
+      for(int i = 0; i < gridSize; i++) {
+         for(int k = 0; k < gridSize; k++) {
+            if(shownGrid[i][k] == '*') shownGrid[i][k] = (char) (rand.nextInt(25)+97);
+         }
+      }
+   }
 
+/*
+   // to test WordGrid
    public static void main(String[] args) {
       WordGrid wordGrid = new WordGrid();
       
@@ -287,7 +274,7 @@ public class WordGrid {
       wordGrid.printGrid(gridSize, shownGrid);
 
       wordGrid.printCoordinatesList(coordinatesList);
-
+*/
 
    }
 
