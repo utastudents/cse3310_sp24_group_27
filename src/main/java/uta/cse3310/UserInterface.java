@@ -1,8 +1,9 @@
 package uta.cse3310;
 
-public class UserInterface extends WordGrid and PlayerType {
+public class UserInterface extends WordGrid{
 
     public boolean Play_With_2_Players() {
+        return false ;
     }
 
     public void Display_Board() {

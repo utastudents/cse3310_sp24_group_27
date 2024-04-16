@@ -1,38 +1,57 @@
 package uta.cse3310;
 
-import junit.framework.Test;
+
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.java_websocket.WebSocket;
+import org.java_websocket.drafts.Draft_6455;
+import org.java_websocket.handshake.ClientHandshake;
 
-/**
- * Unit test for simple App.
- */
-public class AppTest 
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public AppTest( String testName )
-    {
-        super( testName );
+public class AppTest extends TestCase {
+
+    public void testOnOpen() throws Exception {
+        // Create a WebSocket connection
+        WebSocket conn = new MockWebSocket();
+        ClientHandshake handshake = new MockClientHandshake();
+
+        // Create an instance of App
+        App app = new App(8080, new Draft_6455());
+
+        // Simulate the onOpen event
+        app.onOpen(conn, handshake);
+
+        // Ensure that the connection has been established and the game state is updated
+        assertNotNull(conn.getAttachment());
+        // You may add more assertions based on your specific requirements
     }
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
+    public void testOnClose() throws Exception {
+        // Create a WebSocket connection
+        WebSocket conn = new MockWebSocket();
+
+        // Create an instance of App
+        App app = new App(8080, new Draft_6455());
+
+        // Simulate the onClose event
+        app.onClose(conn, 1000, "Normal closure", true);
+
+        // Ensure that the game state is updated accordingly (e.g., player removed from the game)
+        // You may add more assertions based on your specific requirements
     }
 
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
+    public void testOnMessage() throws Exception {
+        // Create a WebSocket connection
+        WebSocket conn = new MockWebSocket();
+
+        // Create an instance of App
+        App app = new App(8080, new Draft_6455());
+
+        // Simulate receiving a message
+        app.onMessage(conn, "Test message");
+
+        // Ensure that the message is processed correctly and the game state is updated accordingly
+        // You may add more assertions based on your specific requirements
     }
+
+    // You can add more test cases for other methods as needed
 }

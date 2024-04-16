@@ -138,8 +138,7 @@ public class App extends WebSocketServer {
         .println("> " + Duration.between(startTime, Instant.now()).toMillis() + " " + connectionId + " "
             + escape(jsonString));
 
-    // Update the running time
-    stats.setRunningTime(Duration.between(startTime, Instant.now()).toSeconds());
+    
 
     // The state of the game has changed, so lets send it to everyone
     jsonString = gson.toJson(G);
@@ -178,8 +177,7 @@ System.out
     }
 
     
-    // Update the running time
-    stats.setRunningTime(Duration.between(startTime, Instant.now()).toSeconds());
+    
 
     // Get our Game Object
     Game G = conn.getAttachment();

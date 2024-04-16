@@ -1,120 +1,353 @@
-<head>
-    <meta charset="utf-8">
-</head>
-
-<label id="topMessage"></label>
-
-<table>
-    <tr>
-
-        <td><input type="button" value="?" id="b1" onclick=buttonclick(0)></input></td>
-        <td><input type="button" value="?" id="b2" onclick=buttonclick(1)></input></td>
-        <td><input type="button" value="?" id="b3" onclick=buttonclick(2)></input></td>
-
-    </tr>
-    <tr>
-
-        <td><input type="button" value="?" id="b4" onclick=buttonclick(3)></input></td>
-        <td><input type="button" value="?" id="b5" onclick=buttonclick(4)></input></td>
-        <td><input type="button" value="?" id="b6" onclick=buttonclick(5)></input></td>
-
-    </tr>
-
-    <tr>
-
-        <td><input type="button" value="?" id="b7" onclick=buttonclick(6)></input></td>
-        <td><input type="button" value="?" id="b8" onclick=buttonclick(7)></input></td>
-        <td><input type="button" value="?" id="b9" onclick=buttonclick(8)></input></td>
-
-    </tr>
-</table>
-
-<label id="timeMsg"></label>
-<label id="statMsg"></label>
-
-<script>
-    var idx = -1;
-    var gameid = -1;
-    class UserEvent {
-        Button = -1;
-        PlayerIdx = 0;
-        GameId = 0;
-    }
-    var connection = null;
-
-    var serverUrl;
-    serverUrl = "ws://" + window.location.hostname + ":9880";
-    // Create the connection with the server
-    connection = new WebSocket(serverUrl);
-
-    connection.onopen = function (evt) {
-        console.log("open");
-    }
-    connection.onclose = function (evt) {
-        console.log("close");
-        document.getElementById("topMessage").innerHTML = "Server Offline"
-    }
-    const ButtonStateToDisplay = new Map();
-    ButtonStateToDisplay.set("XPLAYER", "X");
-    ButtonStateToDisplay.set("OPLAYER", "O");
-    ButtonStateToDisplay.set("NOPLAYER", " ");
-    connection.onmessage = function (evt) {
-        var msg;
-        msg = evt.data;
-
-        console.log("Message received: " + msg);
-        const obj = JSON.parse(msg);
-
-        if ('YouAre' in obj) {
-            if (obj.YouAre == "XPLAYER") {
-                idx = 0;
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>The Word Seach Game</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
-            else {
-                idx = 1;
+        </style>
+    </head>
+
+
+    <body>
+        <div style="text-align: center;">
+            <h1>The Word Search Game</h1>
+            <hr/>
+        </div>
+        
+        <form style="text-align: center; padding: 10px;">
+            <label for="usernameInput" style="font-size: 16pt;">Enter a username to start:</label>
+            <input type="text" id="usernameInput" placeholder="Enter your username" required style="font-size: 16pt;">
+            <button type="submit" onclick="submitUsername()" style="font-size: 16pt;">Start Game</button>
+        </form>
+
+        <script>
+            // for test use in browser
+            function submitUsername()
+            {
+                event.preventDefault();
+
+                var username = document.getElementById("usernameInput").value;
+                if (username.trim() !== "") 
+                {
+                    // store username in local storage
+                    localStorage.setItem("gameUsername", username);
+                    console.log("Username saved successfully:", username);
+
+                    var gamePath = window.location.href.replace(/\/[^/]*$/, '') + "/lobby.html";
+                    window.location.href = gamePath;
+                } 
+                else 
+                {
+                    alert("Please enter a valid username.");
+                }
+            }
+        </script>
+    </body>
+</html>
+
+<!-- lobby.html -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lobby</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            .container {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px;
+            }
+            .box {
+                flex: 1;
+                border: 1px solid #ccc;
+                padding: 20px;
+                margin-right: 20px;
+            }
+            .chat-box {
+                height: 300px; 
+                overflow-y: auto; 
+            }
+            .player-buttons {
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+
+
+    <body>
+        <div style="text-align: center;">
+            <h1>The Word Search Game</h1>
+            <hr/>
+            <h2 style="margin-bottom: 0px;">Lobby</h2>
+        </div>
+
+        <div class="container">
+            <!-- Generate waiting players div in this style: -->
+            <div id="waiting-players" class="box waiting-players-box">
+                <h2 style="margin-bottom: 0px;">Players Waiting</h2>
+                <hr style="margin-bottom: 20px;"/>
+                <ol>
+                    <li>Player 1</li>
+                    <li>Player 2</li>
+                    <li>Player 3</li>
+                </ol>
+            </div>
+
+            <!-- End example div -->
+            <div class="box leaderboard-box">
+                <h2 style="margin-bottom: 0px;">Leaderboard</h2>
+                <hr style="margin-bottom: 20px;"/>
+                <div class="container">
+                    <!-- Generate rank div in this style: -->
+                    <div id="rank">
+                        <h3 style="margin-top: 0px;">Rank</h3>
+                        <ol style="list-style: none; padding: 0px;">
+                            <li>1</li>
+                            <li>2</li>
+                            <li>3</li>
+                        </ol>
+                    </div>
+                    <!-- End example div -->
+
+                    <div style="padding-top: 0px; border-right: 1px solid black;"></div>
+
+                    <!-- Generate nickname div in this style: -->
+                    <div id="nickname">
+                        <h3 style="margin-top: 0px;">Nickname</h3>
+                        <ol style="list-style: none; padding: 0px;">
+                            <li>Player 4</li>
+                            <li>Player 5</li>
+                            <li>Player 6</li>
+                        </ol>
+                    </div>
+                    <!-- End example div -->
+
+                    <div style="padding-top: 0px; border-right: 1px solid black;"></div>
+
+                    <!-- Generate score div in this style: -->
+                    <div id="score">
+                        <h3 style="margin-top: 0px;">Score</h3>
+                        <ol style="list-style: none; padding: 0px;">
+                            <li>1500</li>
+                            <li>1100</li>
+                            <li>990</li>
+                        </ol>
+                    </div>
+                    <!-- End example div -->
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="box chat-box">
+                <h2 style="margin-bottom: 0px;">Chat</h2>
+                <hr style="margin-bottom: 20px;"/>
+                <div id="chat-messages">
+                    <!-- Chat messages will go here -->
+                    <div><strong>Player 1:</strong> Hi everyone!</div>
+                    <div><strong>Player 2:</strong> Hello!</div>
+                    <!-- Example chat messages -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <input id="chat-box" placeholder="Start a message..." style="font-size: 14pt; height: 20px; width: 100%;">
+            <button id="chat-button" onclick="sendMessage()" style="font-size: 14pt; margin-left: 10px; margin-right: 20px;">Send</button>
+        </div>
+
+        <div class="container">
+            <div class="box player-buttons" style="text-align: center;">
+                <button onclick="selectPlayers(2)" style="font-size: 14pt;">Play With 2 Players</button>
+                <button onclick="selectPlayers(3)" style="font-size: 14pt;">Play With 3 Players</button>
+                <button onclick="selectPlayers(4)" style="font-size: 14pt;">Play With 4 Players</button>
+            </div>
+        </div>
+
+        <script>
+            function selectPlayers(numPlayers) {
+                console.log(numPlayers + " players selected.");
+            }
+        </script>
+    </body>
+</html>
+
+<!-- game.html -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Word Game</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
 
-            gameid = obj.GameId;
-        }
-        else if ('CurrentTurn' in obj) {
-            // show statistics to everyone
-            var t = obj.Stats;
-            if (t) {
-                document.getElementById("timeMsg").innerHTML = "elapsed time " + t.RunningTime;
-                document.getElementById("statMsg").innerHTML =
-                    " in progress " + t.GamesInProgress + " XWin " + t.XWins + " OWin " + t.OWins +
-                    " Draw " + t.Draws + " Total " + t.TotalGames;
+            .grid {
+                border: 1px solid black;
+                padding: 2px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: repeat(50, 1fr);
+                grid-template-rows: repeat(50, 1fr);
+            }
+            .cell {
+                font-size: 14.5pt;
+                padding: 1px;
+                text-align: center;
             }
 
-            // only pay attention to this game
-            if (gameid == obj.GameId) {
-                // button state to display values
-
-                document.getElementById("b1").value = ButtonStateToDisplay.get(obj.Button[0]);
-                document.getElementById("b2").value = ButtonStateToDisplay.get(obj.Button[1]);
-                document.getElementById("b3").value = ButtonStateToDisplay.get(obj.Button[2]);
-                document.getElementById("b4").value = ButtonStateToDisplay.get(obj.Button[3]);
-                document.getElementById("b5").value = ButtonStateToDisplay.get(obj.Button[4]);
-                document.getElementById("b6").value = ButtonStateToDisplay.get(obj.Button[5]);
-                document.getElementById("b7").value = ButtonStateToDisplay.get(obj.Button[6]);
-                document.getElementById("b8").value = ButtonStateToDisplay.get(obj.Button[7]);
-                document.getElementById("b9").value = ButtonStateToDisplay.get(obj.Button[8]);
-
-
-                // the message line
-                document.getElementById("topMessage").innerHTML = obj.Msg[idx];
+            .container {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px;
             }
-        }
-    }
+            .box {
+                flex: 1;
+                border: 1px solid #ccc;
+                padding: 20px;
+                margin-right: 20px;
+            }
+            .chat-box {
+                height: 300px; 
+                overflow-y: auto; 
+            }
+        </style>
+    </head>
 
-    function buttonclick(i) {
-        U = new UserEvent();
-        U.Button = i;
-        if (idx == 0)
-            U.PlayerIdx = "XPLAYER";
-        else
-            U.PlayerIdx = "OPLAYER";
-        U.GameId = gameid;
-        connection.send(JSON.stringify(U));
-        console.log(JSON.stringify(U))
-    }
-</script>
+
+    <body>
+        <div style="text-align: center;">
+            <h1>The Word Search Game</h1>
+            <hr/>
+        </div>
+
+        <div class="container">
+            <div id="grid" class="grid">
+                <!-- 50x50 grid with one letter each -->
+                <script>
+                    const grid = document.getElementById('grid')
+
+                    // create cells in the format <div class="cell">A</div>
+                    // generating random letters
+                    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    const charactersLength = characters.length;
+                    for (let i = 0; i < 50; i++)
+                    {
+                        for (let j = 0; j < 50; j++)
+                        {
+                            const cell = document.createElement('div')
+                            cell.classList.add('cell')
+                            cell.textContent = characters.charAt(Math.floor(Math.random() * charactersLength));
+                            grid.appendChild(cell);
+                        }
+                    }
+                </script>
+                <!-- End of example script -->
+            </div>
+
+            <div style="padding-left: 20px;">
+                <div class="box scoreboard-box" style="padding: 10px;">
+                    <h2 style="margin: 0px; margin-left: 10px; margin-right: 10px; text-align: center;">Scoreboard</h2>
+
+                    <div id="scoreboard">
+                        <!-- Repeat for other players in session -->
+                        <div>
+                            <hr style="margin-bottom: 20px;"/>
+                            <div class="container" style="padding: 5px; background-color: aqua;">
+                                <h3 style="margin: 0px;">Player 1</h3>
+                                <h3 style="margin: 0px;">1500</h3>
+                            </div>
+
+                            <ol style="margin: 5px;">
+                                <li>Word1</li>
+                                <li>Word2</li>
+                                <li>Word3</li>
+                            </ol>
+                        </div>
+                        
+                        <div>
+                            <hr style="margin-bottom: 20px;"/>
+                            <div class="container" style="padding: 5px; background-color: fuchsia;">
+                                <h3 style="margin: 0px;">Player 2</h3>
+                                <h3 style="margin: 0px;">1100</h3>
+                            </div>
+
+                            <ol style="margin: 5px;">
+                                <li>Word4</li>
+                                <li>Word5</li>
+                                <li>Word6</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <hr style="margin-bottom: 20px;"/>
+                            <div class="container" style="padding: 5px; background-color: chartreuse;">
+                                <h3 style="margin: 0px;">Player 3</h3>
+                                <h3 style="margin: 0px;">900</h3>
+                            </div>
+
+                            <ol style="margin: 5px;">
+                                <li>Word7</li>
+                                <li>Word8</li>
+                                <li>Word9</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <hr style="margin-bottom: 20px;"/>
+                            <div class="container" style="padding: 5px; background-color: red;">
+                                <h3 style="margin: 0px;">Player 4</h3>
+                                <h3 style="margin: 0px;">800</h3>
+                            </div>
+
+                            <ol style="margin: 5px;">
+                                <li>Word10</li>
+                                <li>Word11</li>
+                                <li>Word12</li>
+                            </ol>
+                        </div>
+                        <!-- End example scoreboard entry -->
+                    </div>
+                </div>
+
+                <div style="padding: 10px;"></div>
+
+                <div class="box chat-box" style="padding: 10px;">
+                    <h2 style="margin: 0px; text-align: center;">Chat</h2>
+                    <hr style="margin-bottom: 20px;"/>
+                    <div id="chat-messages" style="overflow-y: auto;">
+                        <!-- Chat messages will go here -->
+                        <div><strong>Player 1:</strong> Hi everyone!</div>
+                        <div><strong>Player 2:</strong> Hello!</div>
+                        <!-- Example chat messages -->
+                    </div>
+                </div>
+
+                <div class="container" style="padding: 0px; padding-top: 10px;">
+                    <input id="chat-box" placeholder="Start a message..." style="font-size: 14pt; height: 20px; width: 100%;">
+                    <button id="chat-button" onclick="sendMessage()" style="font-size: 14pt; margin-left: 10px; margin-right: 20px;">Send</button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
