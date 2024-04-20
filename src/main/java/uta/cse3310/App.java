@@ -233,7 +233,7 @@ System.out
     
     // Set up the http server
     String HttpPort = System.getenv("HTTP_PORT");
-    int port = 9080;
+    int port = 9027;
 
     if (HttpPort!=null) {
       port = Integer.valueOf(HttpPort);
@@ -243,7 +243,7 @@ System.out
     H.start();
     System.out.println("http Server started on port: " + port);
 
-    port = 9180;
+    port = 9127;
     String WSPort = System.getenv("WEBSOCKET_PORT");
     if (WSPort!=null) {
       port = Integer.valueOf(WSPort);
@@ -251,7 +251,7 @@ System.out
 
     // create and start the websocket server
 
-    port = 9880;
+    port = 9827;
     App A = new App(port);
     A.setReuseAddr(true);
     A.start();
