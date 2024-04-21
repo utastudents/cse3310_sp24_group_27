@@ -11,7 +11,7 @@ public class AppTest extends TestCase {
 
     public void testOnOpen() throws Exception {
         // Create a WebSocket connection
-        WebSocket conn = new MockWebSocket();
+        WebSocket conn = new MockWebSocket(null, null);
         ClientHandshake handshake = new MockClientHandshake();
 
         // Create an instance of App
@@ -27,7 +27,7 @@ public class AppTest extends TestCase {
 
     public void testOnClose() throws Exception {
         // Create a WebSocket connection
-        WebSocket conn = new MockWebSocket();
+        WebSocket conn = new MockWebSocket(null, null);
 
         // Create an instance of App
         App app = new App(8080, new Draft_6455());
@@ -41,7 +41,7 @@ public class AppTest extends TestCase {
 
     public void testOnMessage() throws Exception {
         // Create a WebSocket connection
-        WebSocket conn = new MockWebSocket();
+        WebSocket conn = new MockWebSocket(null, null);
 
         // Create an instance of App
         App app = new App(8080, new Draft_6455());
