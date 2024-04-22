@@ -53,7 +53,11 @@
 
             function submitUsername(event) {
                 event.preventDefault();
-
+                */
+            
+            document.getElementById("loginForm").addEventListener("submit"), function(event){
+                
+                event.preventDefault();
                 var username = document.getElementById("usernameInput").value;
                 if (username.trim() !== "") {
                     //put the send from tic tac toe here 
@@ -106,12 +110,21 @@
             .box {
                 flex: 1;
                 border: 1px solid #ccc;
+                /*
+                padding-top: 20px;
+                padding-bottom: 20px;
+                padding-left: 20px;
+                padding-right: 20px;
+                */
                 padding: 20px;
                 margin-right: 20px;
+            
             }
             .chat-box {
+                cursor: pointer;
                 height: 300px; 
-                overflow-y: auto; 
+                overflow-y: auto;
+              
             }
             .player-buttons {
                 margin-top: 20px;
@@ -193,7 +206,7 @@
                     <!-- Example chat messages -->
                 </div>
             </div>
-        </div>
+        </div>  
         
         <div class="container">
             <input id="chat-box" placeholder="Start a message..." style="font-size: 14pt; height: 20px; width: 100%;">
@@ -213,6 +226,8 @@
                 console.log(numPlayers + " players selected.");
             }
         </script>
+     function selectPlayers
+
     </body>
 </html>
 

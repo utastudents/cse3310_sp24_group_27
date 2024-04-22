@@ -30,8 +30,8 @@ public class WordGrid {
          
          boolean placed = false, done = false, entireWord = false;
          String word = getWord("words.txt");
-         int   randX = rand.nextInt(49), 
-               randY = rand.nextInt(49), 
+         int   randX = rand.nextInt(gridSize-1), 
+               randY = rand.nextInt(gridSize-1), 
                xVal = randX, 
                yVal = randY, 
                direction = rand.nextInt(4); //up, down, right, up-right, up-right
@@ -146,8 +146,8 @@ public class WordGrid {
                coordinatesList[1][wordsNum] = randX;
             }
             else {
-               randX = rand.nextInt(49);
-               randY = rand.nextInt(49);
+               randX = rand.nextInt(gridSize-1);
+               randY = rand.nextInt(gridSize-1);
                   xVal = randX;
                   yVal = randY;
             }
@@ -199,7 +199,7 @@ public class WordGrid {
          
       }
 
-      randomizeSpaces(gridSize, shownGrid);
+      // randomizeSpaces(gridSize, shownGrid);
 
    }
 
@@ -258,24 +258,26 @@ public class WordGrid {
       }
    }
 
-/*
-   // to test WordGrid
-   public static void main(String[] args) {
-      WordGrid wordGrid = new WordGrid();
-      
-      String filename = "words.txt";
-      int gridSize = 50;
-      int numWords = 150;
-      int[][] coordinatesList = new int[2][(int) numWords];
-      char[][] shownGrid = new char[gridSize][gridSize];
-      
-      wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
-      
-      wordGrid.printGrid(gridSize, shownGrid);
 
-      wordGrid.printCoordinatesList(coordinatesList);
+   // // to test WordGrid
+   // public static void main(String[] args) {
+   //    WordGrid wordGrid = new WordGrid();
+      
+   //    String filename = "words.txt";
+   //    // int gridSize = 50;
+   //    int gridSize = 35;
+   //    int numWords = (int) (gridSize * .8);
+   //    System.out.println(numWords);
+   //    int[][] coordinatesList = new int[2][(int) numWords];
+   //    char[][] shownGrid = new char[gridSize][gridSize];
+      
+   //    wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
+      
+   //    wordGrid.printGrid(gridSize, shownGrid);
+
+   //    wordGrid.printCoordinatesList(coordinatesList);
 
 
-   }
-*/
+   // }
+
 }
