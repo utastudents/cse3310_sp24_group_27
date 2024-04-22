@@ -24,7 +24,7 @@ public class Game {
         CurrentTurn = PlayerType.NOPLAYER;
         // Shown to the user, 0 is XPLAYER
         // 1 is OPLAYER
-        Msg = new String[2];
+        Msg = new String[4];
         Msg[0] = "Waiting for other player to join";
         Msg[1] = "";
         Msg[2] = "";

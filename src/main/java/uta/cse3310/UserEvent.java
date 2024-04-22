@@ -7,11 +7,6 @@ public class UserEvent {
     int Button; // button number from 0 to 8
     String Type; //The chat message 
 
-
-    UserEvent() {
-
-    }
-
     UserEvent(int _GameId, PlayerType _PlayerIdx, int _Button, String _Type) {
         GameId = _GameId;
         PlayerIdx = _PlayerIdx;
