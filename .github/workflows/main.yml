@@ -68,7 +68,7 @@ jobs:
            
       - name: restart daemon
         run: |
-           ssh production "systemctl --user enable  ${{ vars.service_name }}.service"
-           ssh production "systemctl --user restart ${{ vars.service_name }}.service"
-           ssh production "systemctl --user status  ${{ vars.service_name }}.service"
+           ssh production "systemctl --user enable  ${{ vars.service_name }}"
+           ssh production "systemctl --user restart ${{ vars.service_name }}"
+           ssh production "systemctl --user status  ${{ vars.service_name }}"
            
