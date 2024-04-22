@@ -30,10 +30,17 @@
 
         <script>
             // for test use in browser
+
+
+            /* This is the Part I commented out before adding document.getElementById("loginFor.....
             function submitUsername()
             {
                 event.preventDefault();
-
+                */
+            
+            document.getElementById("loginForm").addEventListener("submit"), function(event){
+                
+                event.preventDefault();
                 var username = document.getElementById("usernameInput").value;
                 if (username.trim() !== "") 
                 {
@@ -193,6 +200,8 @@
                 console.log(numPlayers + " players selected.");
             }
         </script>
+     function selectPlayers
+
     </body>
 </html>
 
