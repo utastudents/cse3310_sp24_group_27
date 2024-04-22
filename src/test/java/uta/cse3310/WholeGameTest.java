@@ -66,30 +66,30 @@ public class WholeGameTest
         // for other player to join\",\"\"],\"GameId\":1}
 
         // > 17987 2 {\"YouAre\":\"OPLAYER\",\"GameId\":1}
-        game.Players = PlayerType.OPLAYER;
+        game.Players = PlayerType.PLAYERTWO;
         game.StartGame();
 
-        msg = "{\"Players\":\"OPLAYER\",\"CurrentTurn\":\"XPLAYER\",\"Button\":[\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\"],\"Msg\":[\"You are X. Your turn\",\"You are O. Other players turn\"],\"GameId\":1}";
+        msg = "{\"Players\":\"PLAYERTWO\",\"CurrentTurn\":\"PLAYERONE\",\"Button\":[\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\"],\"Msg\":[\"You are PLayer 1. Your turn\",\"You are Player 2. Other players turn\"],\"GameId\":1}";
         assertTrue(msg.indexOf("\"Msg\":[\"You are X. Your turn\"")>-1);
          
-        result = update(game, "{\"Button\":0,\"PlayerIdx\":\"XPLAYER\",\"GameId\":1}");
+        result = update(game, "{\"Button\":0,\"PlayerIdx\":\"PLAYERONE\",\"GameId\":1}");
        
         // {\"Players\":\"OPLAYER\",\"CurrentTurn\":\"OPLAYER\",\"Button\":[\"XPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\"],\"Msg\":[\"Other
        
         // Players Move.\",\"Your Move.\"],\"GameId\":1}
-        result = update(game,"{\"Button\":1,\"PlayerIdx\":\"OPLAYER\",\"GameId\":1}");
+        result = update(game,"{\"Button\":1,\"PlayerIdx\":\"PLAYERTWO\",\"GameId\":1}");
         // > 24067 *
         // {\"Players\":\"OPLAYER\",\"CurrentTurn\":\"XPLAYER\",\"Button\":[\"XPLAYER\",\"OPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\"],\"Msg\":[\"Your
         // Move.\",\"Other Players Move.\"],\"GameId\":1}
-        result = update(game,"{\"Button\":4,\"PlayerIdx\":\"XPLAYER\",\"GameId\":1}");
+        result = update(game,"{\"Button\":4,\"PlayerIdx\":\"PLAYERONE\",\"GameId\":1}");
         // > 25126 *
         // {\"Players\":\"OPLAYER\",\"CurrentTurn\":\"OPLAYER\",\"Button\":[\"XPLAYER\",\"OPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"XPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\"],\"Msg\":[\"Other
         // Players Move.\",\"Your Move.\"],\"GameId\":1}
-        result = update(game,"{\"Button\":2,\"PlayerIdx\":\"OPLAYER\",\"GameId\":1}");
+        result = update(game,"{\"Button\":2,\"PlayerIdx\":\"PLAYERTWO\",\"GameId\":1}");
         // > 26285 *
         // {\"Players\":\"OPLAYER\",\"CurrentTurn\":\"XPLAYER\",\"Button\":[\"XPLAYER\",\"OPLAYER\",\"OPLAYER\",\"NOPLAYER\",\"XPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\",\"NOPLAYER\"],\"Msg\":[\"Your
         // Move.\",\"Other Players Move.\"],\"GameId\":1}
-        result = update(game,"{\"Button\":8,\"PlayerIdx\":\"XPLAYER\",\"GameId\":1}");
+        result = update(game,"{\"Button\":8,\"PlayerIdx\":\"PLAYERONE\",\"GameId\":1}");
         
         assertTrue(result.indexOf("[\"You Win!\",\"You Lose!\"]")>-1);
        
