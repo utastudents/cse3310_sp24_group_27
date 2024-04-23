@@ -25,7 +25,7 @@
         <form id = "usernameForm" style="text-align: center; padding: 10px;">
             <label for="usernameInput" style="font-size: 16pt;">Enter a username to start:</label>
             <input type="text" id="usernameInput" placeholder="Enter your username" required style="font-size: 16pt;">
-            <button type="button" onclick="submitUsername()" style="font-size: 16pt;">Start Game</button>
+            <button type="button" onclick="submitUsername(event)" style="font-size: 16pt;">Start Game</button>
         </form>
 
         <script>
@@ -52,7 +52,9 @@
             };
 
             function submitUsername(event) {                
-                event.preventDefault();
+                if (event){
+                    event.preventDefault();
+                }
             
                 // document.getElementById("loginForm").addEventListener("submit"), function(event){
                 
