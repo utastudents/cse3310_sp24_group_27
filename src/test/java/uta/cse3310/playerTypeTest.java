@@ -42,5 +42,10 @@ public void testPlayerTypeEquality() {
       assertNotSame(PlayerType.PLAYERTWO, PlayerType.PLAYERFOUR);
       assertNotSame(PlayerType.PLAYERTHREE, PlayerType.PLAYERFOUR);
   }
+
+private void assertEquals(PlayerType noplayer, PlayerType noplayer2) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'assertEquals'");
+}
 }
 
