@@ -1,16 +1,49 @@
+// package uta.cse3310;
+// // User events are sent from the webpage to the server
+
+// public class UserEvent {
+//     int GameId; // the game ID on the server
+//     PlayerType PlayerIdx; //
+//     int Button; // button number from 0 to 8
+//     String type; //The chat message 
+//     String text;
+//     String username;
+//     UserEvent(int _GameId, PlayerType _PlayerIdx, int _Button, String _Type, String _Text, String _Username) {
+//         GameId = _GameId;
+//         PlayerIdx = _PlayerIdx;
+//         Button = _Button;
+//         type = _Type;
+//         text = _Text;
+//         username = _Username;
+//     }
+// }
+
 package uta.cse3310;
-// User events are sent from the webpage to the server
+
 
 public class UserEvent {
     int GameId; // the game ID on the server
     PlayerType PlayerIdx; // either an XPLAYER or an OPLAYER
     int Button; // button number from 0 to 8
-    String Type; //The chat message 
+    String type; // The chat message 
+    String text;
+    String username;
 
-    UserEvent(int _GameId, PlayerType _PlayerIdx, int _Button, String _Type) {
+    // Constructor for chat messages
+    public UserEvent(String _Type, String _Text, String _Username) {
+        type = _Type;
+        text = _Text;
+        username = _Username;
+    }
+
+    // Your existing constructor for other types of events
+    public UserEvent(int _GameId, PlayerType _PlayerIdx, int _Button, String _Type, String _Text, String _Username) {
         GameId = _GameId;
         PlayerIdx = _PlayerIdx;
         Button = _Button;
-        Type = _Type;
+        type = _Type;
+        text = _Text;
+        username = _Username;
     }
 }
+
