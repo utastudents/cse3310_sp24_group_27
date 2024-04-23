@@ -14,25 +14,25 @@
             }
         </style>
     </head>
-
-
+ 
+ 
     <body>
         <div style="text-align: center;">
             <h1>The Word Search Game</h1>
             <hr/>
         </div>
-        
+       
         <form id = "usernameForm" style="text-align: center; padding: 10px;">
             <label for="usernameInput" style="font-size: 16pt;">Enter a username to start:</label>
             <input type="text" id="usernameInput" placeholder="Enter your username" required style="font-size: 16pt;">
-            <button type="button" onclick="submitUsername()" style="font-size: 16pt;">Start Game</button>
+            <button type="button" onclick="submitUsername(event)" style="font-size: 16pt;">Start Game</button>
         </form>
-
+ 
         <script>
             // for test use in browser
             //this is my new code that I put in, not done/correct yet though
-
-            //add a class that handles the json data like in tic tac toe, then I will call that when I send it over to the java side. I also need a class just like this one in the java code as well 
+ 
+            //add a class that handles the json data like in tic tac toe, then I will call that when I send it over to the java side. I also need a class just like this one in the java code as well
             class UserEvent{
                 Button = -1;
                 PlayerIdx = 0;
@@ -42,23 +42,24 @@
             var serverUrl = "ws://" + window.location.hostname + ":9127";
             // var serverUrl = "ws://" + window.location.hostname + ":9180" + (parseInt(location.port) + 100);
             connection = new WebSocket(serverUrl);
-
+ 
             connection.onopen = function (evt) {
                 console.log("Connection opened.");
             };
-
+ 
             connection.onclose = function (evt) {
                 console.log("Connection closed.");
             };
-
+ 
             function submitUsername(event) {                
-                event.preventDefault();
-            
-                // document.getElementById("loginForm").addEventListener("submit"), function(event){
-                
+                if (event){
+                    event.preventDefault();
+                }
+           
+               
                 var username = document.getElementById("usernameInput").value;
                 if (username.trim() !== "") {
-                    //put the send from tic tac toe here 
+                    //put the send from tic tac toe here
                     var waitingPlayersList = document.getElementById("waiting-players-list");
                     var newPlayerItem = document.createElement("li");
                     newPlayerItem.textContent = username;
@@ -70,7 +71,7 @@
                     alert("Please enter a valid username.");
                 }
             }
-
+ 
             document.getElementById("usernameForm").addEventListener("submit", submitUsername);
             // Listen for messages from the server
             connection.onmessage = function (event) {
@@ -81,7 +82,7 @@
                     var playerName = message.username;
                     addPlayerToList(playerName);
                 }
-            };   
+            };  
         </script>
     </body>
 </html>
