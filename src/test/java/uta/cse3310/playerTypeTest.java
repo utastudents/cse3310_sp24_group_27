@@ -23,7 +23,12 @@ public void testPlayerTypeOrdinal() {
       assertEquals(4, PlayerType.PLAYERFOUR.ordinal());
   }
 
-  public void testPlayerTypeEquality() {
+  private void assertEquals(int i, int ordinal) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'assertEquals'");
+}
+
+public void testPlayerTypeEquality() {
       assertEquals(PlayerType.NOPLAYER, PlayerType.NOPLAYER);
       assertEquals(PlayerType.PLAYERONE, PlayerType.PLAYERONE);
       assertEquals(PlayerType.PLAYERTWO, PlayerType.PLAYERTWO);
