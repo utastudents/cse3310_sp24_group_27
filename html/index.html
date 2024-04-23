@@ -1,3 +1,236 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>The Word Seach Game</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+ 
+ 
+    <body>
+        <div style="text-align: center;">
+            <h1>The Word Search Game</h1>
+            <hr/>
+        </div>
+       
+        <form id = "usernameForm" style="text-align: center; padding: 10px;">
+            <label for="usernameInput" style="font-size: 16pt;">Enter a username to start:</label>
+            <input type="text" id="usernameInput" placeholder="Enter your username" required style="font-size: 16pt;">
+            <button type="button" onclick="submitUsername(event)" style="font-size: 16pt;">Start Game</button>
+        </form>
+ 
+        <script>
+            // for test use in browser
+            //this is my new code that I put in, not done/correct yet though
+ 
+            //add a class that handles the json data like in tic tac toe, then I will call that when I send it over to the java side. I also need a class just like this one in the java code as well
+            class UserEvent{
+                Button = -1;
+                PlayerIdx = 0;
+                GameId = 0;
+            }
+            var connection = null;
+            var serverUrl = "ws://" + window.location.hostname + ":9127";
+            // var serverUrl = "ws://" + window.location.hostname + ":9180" + (parseInt(location.port) + 100);
+            connection = new WebSocket(serverUrl);
+ 
+            connection.onopen = function (evt) {
+                console.log("Connection opened.");
+            };
+ 
+            connection.onclose = function (evt) {
+                console.log("Connection closed.");
+            };
+ 
+            function submitUsername(event) {                
+                if (event){
+                    event.preventDefault();
+                }
+           
+               
+                var username = document.getElementById("usernameInput").value;
+                if (username.trim() !== "") {
+                    //put the send from tic tac toe here
+                    var waitingPlayersList = document.getElementById("waiting-players-list");
+                    var newPlayerItem = document.createElement("li");
+                    newPlayerItem.textContent = username;
+                    waitingPlayersList.appendChild(newPlayerItem);
+                    U = new UserEvent();
+                    connection.send(JSON.stringify(U)); // Send the username to the server
+                    console.log(JSON.stringify(U));
+                } else {
+                    alert("Please enter a valid username.");
+                }
+            }
+ 
+            document.getElementById("usernameForm").addEventListener("submit", submitUsername);
+            // Listen for messages from the server
+            connection.onmessage = function (event) {
+                var message = JSON.parse(event.data);
+                // Assuming the server sends a message containing the username of the newly joined player
+                // Modify this logic according to the actual message format from the server
+                if (message.type === "new_player") {
+                    var playerName = message.username;
+                    addPlayerToList(playerName);
+                }
+            };  
+        </script>
+    </body>
+</html>
+
+<!-- lobby.html -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lobby</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            .container {
+                display: flex;
+                justify-content: space-between;
+                padding: 10px;
+            }
+            .box {
+                flex: 1;
+                border: 1px solid #ccc;
+                /*
+                padding-top: 20px;
+                padding-bottom: 20px;
+                padding-left: 20px;
+                padding-right: 20px;
+                */
+                padding: 20px;
+                margin-right: 20px;
+            
+            }
+            .chat-box {
+                cursor: pointer;
+                height: 300px; 
+                overflow-y: auto;
+              
+            }
+            .player-buttons {
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+
+
+    <body>
+        <div style="text-align: center;">
+            <h1>The Word Search Game</h1>
+            <hr/>
+            <h2 style="margin-bottom: 0px;">Lobby</h2>
+        </div>
+
+        <div class="container">
+            <!-- Generate waiting players div in this style: -->
+            <div id="waiting-players" class="box waiting-players-box">
+                <h2 style="margin-bottom: 0px;">Players Waiting</h2>
+                <hr style="margin-bottom: 20px;"/>
+                <ol id = "waiting-players-list">
+                    
+                </ol>
+            </div>
+
+            <!-- End example div -->
+            <div class="box leaderboard-box">
+                <h2 style="margin-bottom: 0px;">Leaderboard</h2>
+                <hr style="margin-bottom: 20px;"/>
+                <div class="container">
+                    <!-- Generate rank div in this style: -->
+                    <div id="rank">
+                        <h3 style="margin-top: 0px;">Rank</h3>
+                        <ol style="list-style: none; padding: 0px;">
+                            <li>1</li>
+                            <li>2</li>
+                            <li>3</li>
+                        </ol>
+                    </div>
+                    <!-- End example div -->
+
+                    <div style="padding-top: 0px; border-right: 1px solid black;"></div>
+
+                    <!-- Generate nickname div in this style: -->
+                    <div id="nickname">
+                        <h3 style="margin-top: 0px;">Nickname</h3>
+                        <ol style="list-style: none; padding: 0px;">
+                            <li>Player 4</li>
+                            <li>Player 5</li>
+                            <li>Player 6</li>
+                        </ol>
+                    </div>
+                    <!-- End example div -->
+
+                    <div style="padding-top: 0px; border-right: 1px solid black;"></div>
+
+                    <!-- Generate score div in this style: -->
+                    <div id="score">
+                        <h3 style="margin-top: 0px;">Score</h3>
+                        <ol style="list-style: none; padding: 0px;">
+                            <li>1500</li>
+                            <li>1100</li>
+                            <li>990</li>
+                        </ol>
+                    </div>
+                    <!-- End example div -->
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="box chat-box">
+                <h2 style="margin-bottom: 0px;">Chat</h2>
+                <hr style="margin-bottom: 20px;"/>
+                <div id="chat-messages">
+                    <!-- Chat messages will go here -->
+                    <div><strong>Player 1:</strong> Hi everyone!</div>
+                    <div><strong>Player 2:</strong> Hello!</div>
+                    <!-- Example chat messages -->
+                </div>
+            </div>
+        </div>  
+        
+        <div class="container">
+            <input id="chat-box" placeholder="Start a message..." style="font-size: 14pt; height: 20px; width: 100%;">
+            <button id="chat-button" onclick="sendMessage()" style="font-size: 14pt; margin-left: 10px; margin-right: 20px;">Send</button>
+        </div>
+
+        <div class="container">
+            <div class="box player-buttons" style="text-align: center;">
+                <button onclick="selectPlayers(2)" style="font-size: 14pt;">Play With 2 Players</button>
+                <button onclick="selectPlayers(3)" style="font-size: 14pt;">Play With 3 Players</button>
+                <button onclick="selectPlayers(4)" style="font-size: 14pt;">Play With 4 Players</button>
+            </div>
+        </div>
+
+        <script>
+            function selectPlayers(numPlayers) {
+                console.log(numPlayers + " players selected.");
+            }
+        </script>
+     function selectPlayers
+
+    </body>
+</html>
+
+<!-- game.html -->
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -5,16 +238,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Word Game</title>
         <style>
-            body
-            {
+            body {
                 font-family: Arial, sans-serif;
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
             }
 
-            .grid
-            {
+            .grid {
                 border: 1px solid black;
                 padding: 2px;
                 margin: 0 auto;
@@ -22,38 +253,24 @@
                 grid-template-columns: repeat(50, 1fr);
                 grid-template-rows: repeat(50, 1fr);
             }
-            .cell
-            {
+            .cell {
                 font-size: 14.5pt;
                 padding: 1px;
                 text-align: center;
-                user-select: none;
-                background-color: white;
-            }
-            .selected
-            {
-                background-color: aqua;
-            }
-            .used
-            {
-                background-color: aqua;
             }
 
-            .container
-            {
+            .container {
                 display: flex;
                 justify-content: space-between;
                 padding: 10px;
             }
-            .box
-            {
+            .box {
                 flex: 1;
                 border: 1px solid #ccc;
                 padding: 20px;
                 margin-right: 20px;
             }
-            .chat-box
-            {
+            .chat-box {
                 height: 300px; 
                 overflow-y: auto; 
             }
@@ -69,7 +286,7 @@
 
         <div class="container">
             <div id="grid" class="grid">
-                <!-- Generate 50x50 grid containing one letter each -->
+                <!-- 50x50 grid with one letter each -->
                 <script>
                     const grid = document.getElementById('grid')
 
@@ -83,8 +300,7 @@
                         {
                             const cell = document.createElement('div')
                             cell.classList.add('cell')
-                            cell.textContent = characters.charAt(Math.floor(Math.random() * charactersLength)); // random letters
-                            // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
+                            cell.textContent = characters.charAt(Math.floor(Math.random() * charactersLength));
                             grid.appendChild(cell);
                         }
                     }
