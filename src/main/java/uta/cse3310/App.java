@@ -158,39 +158,40 @@ public class App extends WebSocketServer {
 
   @Override
   public void onMessage(WebSocket conn, String message) {
-System.out
+    System.out
         .println("< " + Duration.between(startTime, Instant.now()).toMillis() + " " + "-" + " " + escape(message));
 
     // Bring in the data from the webpage
     // A UserEvent is all that is allowed at this point
     GsonBuilder builder = new GsonBuilder();
     Gson gson = builder.create();
-    UserEvent U = gson.fromJson(message, UserEvent.class);
-
-    //New code for chatbox functionality:
-
-    if ("chat".equals(U.Type)) {
-      // Chat message
-      // Send the message to everyone
-      broadcast(message);
-      return;
+    try{
+      UserEvent U = gson.fromJson(message, UserEvent.class);
+  
+      //New code for chatbox functionality:
+  
+      
+      // Get our Game Object
+      Game G = conn.getAttachment();
+      G.Update(U);
+      
+      if ("chat".equals(U.Type)) {
+        // Chat message
+        // Send the message to everyone
+        broadcast(message);
+        return;
+      }
+      // send out the game state every time
+      // to everyone
+      String jsonString;
+      jsonString = gson.toJson(G);
+  
+      System.out.println("> " + Duration.between(startTime, Instant.now()).toMillis() + " " + "*" + " " + escape(jsonString));
+      broadcast(jsonString);
     }
-
-    
-    
-
-    // Get our Game Object
-    Game G = conn.getAttachment();
-    G.Update(U);
-
-    // send out the game state every time
-    // to everyone
-    String jsonString;
-    jsonString = gson.toJson(G);
-
-    System.out
-        .println("> " + Duration.between(startTime, Instant.now()).toMillis() + " " + "*" + " " + escape(jsonString));
-    broadcast(jsonString);
+    catch (Exception e) {
+      System.err.println("Received message that isn't a valid JSON: " + e);
+    }
   }
 
   @Override
@@ -232,30 +233,37 @@ System.out
   public static void main(String[] args) {
     
     // Set up the http server
-    String HttpPort = System.getenv("HTTP_PORT");
-    int port = 9080;
+    String HttpPortEnv = System.getenv("HTTP_PORT");
+    int httpPort = 9027;
 
-    if (HttpPort!=null) {
-      port = Integer.valueOf(HttpPort);
+    if (HttpPortEnv!=null) {
+      httpPort = Integer.valueOf(HttpPortEnv);
     }
 
-    HttpServer H = new HttpServer(port, "./html");
+    HttpServer H = new HttpServer(httpPort, "./html");
     H.start();
-    System.out.println("http Server started on port: " + port);
+    System.out.println("http Server started on port: " + httpPort);
 
-    port = 9180;
-    String WSPort = System.getenv("WEBSOCKET_PORT");
-    if (WSPort!=null) {
-      port = Integer.valueOf(WSPort);
+    String WSPortEnv = System.getenv("WEBSOCKET_PORT");
+    int wsPort = 9127;
+    if (WSPortEnv!=null) {
+      wsPort = Integer.valueOf(WSPortEnv);
     }
 
     // create and start the websocket server
+    //trying out the code below
+    App websocketServer = new App(wsPort);
+    websocketServer.setReuseAddr(true);
+    websocketServer.start();
+    System.out.println("WebSocket Server started on port: " + wsPort);
 
-    port = 9880;
-    App A = new App(port);
-    A.setReuseAddr(true);
-    A.start();
-    System.out.println("websocket Server started on port: " + port);
+
+    //this is the old code
+    // port = 9880;
+    // App A = new App(port);
+    // A.setReuseAddr(true);
+    // A.start();
+    // System.out.println("websocket Server started on port: " + port);
 
   }
 }

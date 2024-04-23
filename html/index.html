@@ -14,41 +14,75 @@
             }
         </style>
     </head>
-
-
+ 
+ 
     <body>
         <div style="text-align: center;">
             <h1>The Word Search Game</h1>
             <hr/>
         </div>
-        
-        <form style="text-align: center; padding: 10px;">
+       
+        <form id = "usernameForm" style="text-align: center; padding: 10px;">
             <label for="usernameInput" style="font-size: 16pt;">Enter a username to start:</label>
             <input type="text" id="usernameInput" placeholder="Enter your username" required style="font-size: 16pt;">
-            <button type="submit" onclick="submitUsername()" style="font-size: 16pt;">Start Game</button>
+            <button type="button" onclick="submitUsername(event)" style="font-size: 16pt;">Start Game</button>
         </form>
-
+ 
         <script>
             // for test use in browser
-            function submitUsername()
-            {
-                event.preventDefault();
-
+            //this is my new code that I put in, not done/correct yet though
+ 
+            //add a class that handles the json data like in tic tac toe, then I will call that when I send it over to the java side. I also need a class just like this one in the java code as well
+            class UserEvent{
+                Button = -1;
+                PlayerIdx = 0;
+                GameId = 0;
+            }
+            var connection = null;
+            var serverUrl = "ws://" + window.location.hostname + ":9127";
+            // var serverUrl = "ws://" + window.location.hostname + ":9180" + (parseInt(location.port) + 100);
+            connection = new WebSocket(serverUrl);
+ 
+            connection.onopen = function (evt) {
+                console.log("Connection opened.");
+            };
+ 
+            connection.onclose = function (evt) {
+                console.log("Connection closed.");
+            };
+ 
+            function submitUsername(event) {                
+                if (event){
+                    event.preventDefault();
+                }
+           
+               
                 var username = document.getElementById("usernameInput").value;
-                if (username.trim() !== "") 
-                {
-                    // store username in local storage
-                    localStorage.setItem("gameUsername", username);
-                    console.log("Username saved successfully:", username);
-
-                    var gamePath = window.location.href.replace(/\/[^/]*$/, '') + "/lobby.html";
-                    window.location.href = gamePath;
-                } 
-                else 
-                {
+                if (username.trim() !== "") {
+                    //put the send from tic tac toe here
+                    var waitingPlayersList = document.getElementById("waiting-players-list");
+                    var newPlayerItem = document.createElement("li");
+                    newPlayerItem.textContent = username;
+                    waitingPlayersList.appendChild(newPlayerItem);
+                    U = new UserEvent();
+                    connection.send(JSON.stringify(U)); // Send the username to the server
+                    console.log(JSON.stringify(U));
+                } else {
                     alert("Please enter a valid username.");
                 }
             }
+ 
+            document.getElementById("usernameForm").addEventListener("submit", submitUsername);
+            // Listen for messages from the server
+            connection.onmessage = function (event) {
+                var message = JSON.parse(event.data);
+                // Assuming the server sends a message containing the username of the newly joined player
+                // Modify this logic according to the actual message format from the server
+                if (message.type === "new_player") {
+                    var playerName = message.username;
+                    addPlayerToList(playerName);
+                }
+            };  
         </script>
     </body>
 </html>
@@ -75,12 +109,21 @@
             .box {
                 flex: 1;
                 border: 1px solid #ccc;
+                /*
+                padding-top: 20px;
+                padding-bottom: 20px;
+                padding-left: 20px;
+                padding-right: 20px;
+                */
                 padding: 20px;
                 margin-right: 20px;
+            
             }
             .chat-box {
+                cursor: pointer;
                 height: 300px; 
-                overflow-y: auto; 
+                overflow-y: auto;
+              
             }
             .player-buttons {
                 margin-top: 20px;
@@ -101,10 +144,8 @@
             <div id="waiting-players" class="box waiting-players-box">
                 <h2 style="margin-bottom: 0px;">Players Waiting</h2>
                 <hr style="margin-bottom: 20px;"/>
-                <ol>
-                    <li>Player 1</li>
-                    <li>Player 2</li>
-                    <li>Player 3</li>
+                <ol id = "waiting-players-list">
+                    
                 </ol>
             </div>
 
@@ -164,7 +205,7 @@
                     <!-- Example chat messages -->
                 </div>
             </div>
-        </div>
+        </div>  
         
         <div class="container">
             <input id="chat-box" placeholder="Start a message..." style="font-size: 14pt; height: 20px; width: 100%;">
@@ -184,6 +225,8 @@
                 console.log(numPlayers + " players selected.");
             }
         </script>
+     function selectPlayers
+
     </body>
 </html>
 
@@ -349,5 +392,167 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function ()
+            {
+                let isMouseDown = false
+                let startCell = null
+                let endCell = null
+
+                // Grid dimensions
+                const numRows = 50
+                const numCols = 50
+
+                function selectCells()
+                {
+                    const cells = document.querySelectorAll('.cell')
+                    cells.forEach((cell, index) =>
+                    {
+                        cell.addEventListener('mousedown', function ()
+                        {
+                            if (!cell.classList.contains('used'))
+                            {
+                                isMouseDown = true;
+                                startCell = index;
+                                cell.classList.add('selected');
+                            }
+                        })
+
+                        cell.addEventListener('mouseover', function ()
+                        {
+                            if (isMouseDown && !cell.classList.contains('used'))
+                            {
+                                endCell = index
+                                selectRange(startCell, endCell)
+                            }
+                        })
+                    })
+
+                    document.addEventListener('mouseup', function ()
+                    {
+                        let hasSelected = false
+                        cells.forEach(cell => {
+                            if (cell.classList.contains('selected'))
+                            {
+                                hasSelected = true
+                            }
+                        })
+
+                        if (hasSelected)
+                        {
+                            // Submit/check logic can be implemented here
+                            selectedCellsToConsole() // testing letter selection in console
+
+                            isMouseDown = false
+                            startCell = null
+                            endCell = null
+                            cells.forEach((cell, index) =>
+                            {
+                                cell.classList.remove('selected')
+                            })
+                        }
+                    })
+                }
+
+                function selectRange(start, end)
+                {
+                    const cells = document.querySelectorAll('.cell')
+                    
+                    let startRowCol = getRowCol(start)
+                    let endRowCol = getRowCol(end)
+
+                    let deltaX = endRowCol[0] - startRowCol[0]
+                    let deltaY = endRowCol[1] - startRowCol[1]
+                    let m = 0
+                    if (deltaX == 0)
+                    {
+                        m = "undef"
+                    }
+                    else
+                    {
+                        m = deltaY / deltaX
+
+                        if (m != 0 && m != 1 && m != -1)
+                        {
+                            m = Math.floor(m)
+
+                            if (m < -1 || m > 1)
+                            {
+                                m = "undef"
+                            }
+                        }
+                    }
+                    let dist = getDist(startRowCol, endRowCol)
+
+                    cells.forEach((cell, index) =>
+                    {
+                        let currRowCol = getRowCol(index)
+
+                        let currDeltaX = currRowCol[0] - startRowCol[0]
+                        let currDeltaY = currRowCol[1] - startRowCol[1]
+                        let currM = 0
+                        if (currDeltaX == 0)
+                        {
+                            currM = "undef"
+                        }
+                        else
+                        {
+                            currM = currDeltaY / currDeltaX
+                        }
+
+                        let currDist = getDist(startRowCol, currRowCol)
+
+                        if (!cell.classList.contains('used'))
+                        {
+                            if (index == start)
+                            {
+                                cell.classList.add('selected')
+                            }
+                            else if (currDist <= dist && currM == m)
+                            {
+                                if ((Math.sign(currDeltaX) == Math.sign(deltaX)) &&
+                                    (Math.sign(currDeltaY) == Math.sign(deltaY)))
+                                {
+                                    cell.classList.add('selected')
+                                }
+                            }
+                            else
+                            {
+                                cell.classList.remove('selected')
+                            }
+                        }
+                        
+                    })
+                }
+
+                function selectedCellsToConsole()
+                {
+                    const selectedCells = document.querySelectorAll('.selected')
+                    let selectedLetters = ""
+                
+                    selectedCells.forEach(cell =>
+                    {
+                        selectedLetters += cell.textContent.trim()
+                    })
+                
+                    console.log(selectedLetters)
+                }
+
+                function getRowCol(index)
+                {
+                    const row = Math.floor(index / numCols)
+                    const col = index % numCols
+                    return [row, col]
+                }
+
+                function getDist(coord1, coord2)
+                {
+                    return Math.sqrt(Math.pow(coord2[0] - coord1[0], 2) + Math.pow(coord2[1] - coord1[1], 2))
+                }
+
+                selectCells()
+            })
+        </script>
     </body>
 </html>

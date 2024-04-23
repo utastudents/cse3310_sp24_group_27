@@ -10,7 +10,12 @@ public class playerTypeTest {
       assertEquals("PLAYERFOUR", PlayerType.PLAYERFOUR.toString());
   }
 
-  public void testPlayerTypeOrdinal() {
+  private void assertEquals(String string, String string2) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'assertEquals'");
+}
+
+public void testPlayerTypeOrdinal() {
       assertEquals(0, PlayerType.NOPLAYER.ordinal());
       assertEquals(1, PlayerType.PLAYERONE.ordinal());
       assertEquals(2, PlayerType.PLAYERTWO.ordinal());
@@ -18,7 +23,12 @@ public class playerTypeTest {
       assertEquals(4, PlayerType.PLAYERFOUR.ordinal());
   }
 
-  public void testPlayerTypeEquality() {
+  private void assertEquals(int i, int ordinal) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'assertEquals'");
+}
+
+public void testPlayerTypeEquality() {
       assertEquals(PlayerType.NOPLAYER, PlayerType.NOPLAYER);
       assertEquals(PlayerType.PLAYERONE, PlayerType.PLAYERONE);
       assertEquals(PlayerType.PLAYERTWO, PlayerType.PLAYERTWO);
@@ -32,5 +42,15 @@ public class playerTypeTest {
       assertNotSame(PlayerType.PLAYERTWO, PlayerType.PLAYERFOUR);
       assertNotSame(PlayerType.PLAYERTHREE, PlayerType.PLAYERFOUR);
   }
+
+private void assertNotSame(PlayerType playertwo, PlayerType playerthree) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'assertNotSame'");
+}
+
+private void assertEquals(PlayerType noplayer, PlayerType noplayer2) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'assertEquals'");
+}
 }
 
