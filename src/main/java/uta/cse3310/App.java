@@ -168,17 +168,25 @@ public class App extends WebSocketServer {
     try{
       UserEvent U = gson.fromJson(message, UserEvent.class);
   
-      //New code for chatbox functionality:
   
       
       // Get our Game Object
       Game G = conn.getAttachment();
       G.Update(U);
-      
-      if ("chat".equals(U.Type)) {
+
+      //don't know if I need this or not 
+      // if ("usernames".equals(U.type)) {
+        // Usernames message
+        // Send the message to everyone
+      //   String usernamesMessageJson = gson.toJson(new UserEvent("usernames", U.text, U.username));
+      //   broadcast(usernamesMessageJson);
+      //   return;
+      // }
+      if ("chat".equals(U.type)) {
         // Chat message
         // Send the message to everyone
-        broadcast(message);
+        String chatMessageJson = gson.toJson(new UserEvent("chat", U.text, U.username));
+        broadcast(chatMessageJson);
         return;
       }
       // send out the game state every time
