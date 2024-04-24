@@ -256,7 +256,6 @@
 </html>
 
 <!-- game.html -->
-<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -279,9 +278,19 @@
         grid-template-rows: repeat(50, 1fr);
       }
       .cell {
-        font-size: 14.5pt;
-        padding: 1px;
-        text-align: center;
+          font-size: 14.5pt;
+          padding: 1px;
+          text-align: center;
+          user-select: none;
+          background-color: white;
+      }
+      .selected
+      {
+          background-color: aqua;
+      }
+      .used
+      {
+          background-color: aqua;
       }
 
       .container {
@@ -312,23 +321,24 @@
       <div id="grid" class="grid">
         <!-- 50x50 grid with one letter each -->
         <script>
-          const grid = document.getElementById("grid");
+          const grid = document.getElementById('grid')
 
           // create cells in the format <div class="cell">A</div>
           // generating random letters
-          const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+          const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
           const charactersLength = characters.length;
-          for (let i = 0; i < 50; i++) {
-            for (let j = 0; j < 50; j++) {
-              const cell = document.createElement("div");
-              cell.classList.add("cell");
-              cell.textContent = characters.charAt(
-                Math.floor(Math.random() * charactersLength)
-              );
-              grid.appendChild(cell);
-            }
+          for (let i = 0; i < 50; i++)
+          {
+              for (let j = 0; j < 50; j++)
+              {
+                  const cell = document.createElement('div')
+                  cell.classList.add('cell')
+                  cell.textContent = characters.charAt(Math.floor(Math.random() * charactersLength)); // random letters
+                  // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
+                  grid.appendChild(cell);
+              }
           }
-        </script>
+      </script>
         <!-- End of example script -->
       </div>
 
@@ -489,6 +499,7 @@
         chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
       }
 
+      // highlighting will not work if errors are thrown
       document.addEventListener("DOMContentLoaded", function () {
         let isMouseDown = false;
         let startCell = null;
