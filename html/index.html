@@ -101,8 +101,6 @@
         // Listen for messages from the server
         connection.onmessage = function (event) {
             var message = JSON.parse(event.data);
-            // Assuming the server sends a message containing the username of the newly joined player
-            // Modify this logic according to the actual message format from the server
             if ("PlayerUserNames" in message) {
                 var playerUserNames = message["PlayerUserNames"];
                 
@@ -110,7 +108,7 @@
                     addPlayerToList(playerUserNames[i]);
                 }
             }
-            if (message.type === "chat-messages") {
+            if (message.type === "chat") {
               addChatMessage(message.text, message.username);
             } else if (message.type === "new_player") {
               var playerName = message.username;
