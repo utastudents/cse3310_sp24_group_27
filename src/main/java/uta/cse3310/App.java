@@ -171,15 +171,17 @@ public class App extends WebSocketServer {
 
       System.err.println("message: " + message + message.contains("username") + U.GameId + G.GameId);
       if (message.contains("username")){ //  && U.GameId == G.GameId
-        System.err.println("alusygasyglas");
         G.PlayerUserNames.add(U.username);
       }
-
-      if ("chat".equals(U.type)) {
+      System.err.println(gson.toJson(U));
+      if ("chat-messages".equals(U.type)) {
         // Chat message
         // Send the message to everyone
+        System.err.println("a;sldkjf;alskdjf;laksdjf;lasdjkl;f");
         String chatMessageJson = gson.toJson(new UserEvent("chat", U.text, U.username));
+        System.err.println("chat message: " + chatMessageJson);
         broadcast(chatMessageJson);
+        System.err.println("chat message broadcasted");
         return;
       }
       String jsonString;
