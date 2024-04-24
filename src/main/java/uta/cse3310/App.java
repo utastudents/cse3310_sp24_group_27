@@ -160,28 +160,12 @@ public class App extends WebSocketServer {
   public void onMessage(WebSocket conn, String message) {
     System.out
         .println("< " + Duration.between(startTime, Instant.now()).toMillis() + " " + "-" + " " + escape(message));
-
-    // Bring in the data from the webpage
-    // A UserEvent is all that is allowed at this point
     GsonBuilder builder = new GsonBuilder();
     Gson gson = builder.create();
     try{
       UserEvent U = gson.fromJson(message, UserEvent.class);
-  
-  
-      
-      // Get our Game Object
       Game G = conn.getAttachment();
       G.Update(U);
-
-      //don't know if I need this or not 
-      // if ("usernames".equals(U.type)) {
-        // Usernames message
-        // Send the message to everyone
-      //   String usernamesMessageJson = gson.toJson(new UserEvent("usernames", U.text, U.username));
-      //   broadcast(usernamesMessageJson);
-      //   return;
-      // }
       if ("chat".equals(U.type)) {
         // Chat message
         // Send the message to everyone
@@ -189,8 +173,6 @@ public class App extends WebSocketServer {
         broadcast(chatMessageJson);
         return;
       }
-      // send out the game state every time
-      // to everyone
       String jsonString;
       jsonString = gson.toJson(G);
   

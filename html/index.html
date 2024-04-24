@@ -37,15 +37,12 @@
         onclick="submitUsername(event)"
         style="font-size: 16pt"
       >
-        Start Game
+        Join
       </button>
     </form>
 
     <script>
-      // for test use in browser
-      //this is my new code that I put in, not done/correct yet though
-
-      //add a class that handles the json data like in tic tac toe, then I will call that when I send it over to the java side. I also need a class just like this one in the java code as well
+      
       class UserEvent {
         Button = -1;
         PlayerIdx = 0;
@@ -97,8 +94,13 @@
         if (message.type === "new_player") {
           var playerName = message.username;
           addPlayerToList(playerName);
+
+          //TODO: need to recieve it from the server and then show it on the screen for all players
+
+
         }
       };
+
     </script>
   </body>
 </html>
@@ -133,11 +135,6 @@
                 */
         padding: 20px;
         margin-right: 20px;
-      }
-      .chat-box {
-        cursor: pointer;
-        height: 300px;
-        overflow-y: auto;
       }
       .player-buttons {
         margin-top: 20px;
@@ -203,34 +200,6 @@
           <!-- End example div -->
         </div>
       </div>
-    </div>
-
-    <div class="container">
-      <div class="box chat-box">
-        <h2 style="margin-bottom: 0px">Chat</h2>
-        <hr style="margin-bottom: 20px" />
-        <div id="chat-messages">
-          <!-- Chat messages will go here -->
-          <div><strong>Player 1:</strong> Hi everyone!</div>
-          <div><strong>Player 2:</strong> Hello!</div>
-          <!-- Example chat messages -->
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <input
-        id="chat-box"
-        placeholder="Send a message..."
-        style="font-size: 14pt; height: 20px; width: 100%"
-      />
-      <button
-        id="chat-button"
-        onclick="sendMessage()"
-        style="font-size: 14pt; margin-left: 10px; margin-right: 20px"
-      >
-        Send
-      </button>
     </div>
 
     <div class="container">
@@ -425,8 +394,8 @@
           <hr style="margin-bottom: 20px" />
           <div id="chat-messages" style="overflow-y: auto">
             <!-- Chat messages will go here -->
-            <div><strong>Player 1:</strong> Hi everyone!</div>
-            <div><strong>Player 2:</strong> Hello!</div>
+            <!-- <div><strong>Player 1:</strong> Hi everyone!</div>
+            <div><strong>Player 2:</strong> Hello!</div> -->
             <!-- Example chat messages -->
           </div>
         </div>
@@ -459,7 +428,7 @@
         var username = usernameInput.value.trim();
         if (message.trim() !== "") {
           var userMessage = {
-            type: "chat_message",
+            type: "chat-messages",
             text: message,
             username: username,
           }; // Add your username logic as needed
@@ -473,7 +442,7 @@
 
       connection.onmessage = function (event) {
         var message = JSON.parse(event.data);
-        if (message.type === "chat_message") {
+        if (message.type === "chat-messages") {
           addChatMessage(message.text, message.username);
         } else if (message.type === "new_player") {
           var playerName = message.username;
