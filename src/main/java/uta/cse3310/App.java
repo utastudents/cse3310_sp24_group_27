@@ -98,7 +98,9 @@ public class App extends WebSocketServer {
     // search for a game needing a player
     Game G = null;
     for (Game i : ActiveGames) {
-      if (i.Players == uta.cse3310.PlayerType.PLAYERONE) {
+      if (i.Players == uta.cse3310.PlayerType.PLAYERONE ||
+          i.Players == uta.cse3310.PlayerType.PLAYERTWO ||
+          i.Players == uta.cse3310.PlayerType.PLAYERTHREE) {
         G = i;
         System.out.println("found a match");
       }
@@ -116,7 +118,7 @@ public class App extends WebSocketServer {
     } else {
       // join an existing game
       System.out.println(" not a new game");
-      G.Players = PlayerType.PLAYERTWO;
+      G.Players = PlayerType.values()[G.Players.ordinal() + 1];
       G.StartGame();
     }
 
@@ -166,6 +168,13 @@ public class App extends WebSocketServer {
       UserEvent U = gson.fromJson(message, UserEvent.class);
       Game G = conn.getAttachment();
       G.Update(U);
+
+      System.err.println("message: " + message + message.contains("username") + U.GameId + G.GameId);
+      if (message.contains("username")){ //  && U.GameId == G.GameId
+        System.err.println("alusygasyglas");
+        G.PlayerUserNames.add(U.username);
+      }
+
       if ("chat".equals(U.type)) {
         // Chat message
         // Send the message to everyone
