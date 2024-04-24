@@ -12,11 +12,14 @@ import java.io.File;
 
 public class WordGrid {
 
-   Random rand = new Random();
+   public char[][] Grid;
+
+   //the grid needs to be added to the grid object (public char[][] Grid) 
 
    // generate both grids (coordinatesList and shownGrid)
    public void generateGrid(int gridSize, int numWords, String filename, int[][] coordinatesList, char[][] shownGrid){
       
+      Random rand = new Random();
       // initial fill with * in every spot to show availability
       for(int i = 0; i < gridSize; i++){
          for(int k = 0; k < gridSize; k++){
@@ -251,6 +254,8 @@ public class WordGrid {
    }
 
    public void randomizeSpaces(int gridSize, char shownGrid[][]) {
+      
+      Random rand = new Random();
       for(int i = 0; i < gridSize; i++) {
          for(int k = 0; k < gridSize; k++) {
             if(shownGrid[i][k] == '*') shownGrid[i][k] = (char) (rand.nextInt(25)+97);

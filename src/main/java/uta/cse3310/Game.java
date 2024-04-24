@@ -1,5 +1,7 @@
 package uta.cse3310;
 
+import java.util.ArrayList;
+
 public class Game {
 
     PlayerType Players;
@@ -13,18 +15,20 @@ public class Game {
     public String[] Msg;
     public int GameId;
     public Statistics Stats; 
-
+    public ArrayList<String> PlayerUserNames = new ArrayList<String>();
+    public WordGrid wordGrid = new WordGrid();
     Game(Statistics s) {
         Stats = s;
         Button = new PlayerType[9];
         // initialize it
+        //wordGrid = new WordGrid();
         ResetBoard();
 
         Players = PlayerType.PLAYERONE;
         CurrentTurn = PlayerType.NOPLAYER;
         // Shown to the user, 0 is XPLAYER
         // 1 is OPLAYER
-        Msg = new String[4];
+        Msg = new String[8];
         Msg[0] = "Waiting for other player to join";
         Msg[1] = "";
         Msg[2] = "";

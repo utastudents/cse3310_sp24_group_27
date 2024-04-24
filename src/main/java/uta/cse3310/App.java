@@ -98,7 +98,9 @@ public class App extends WebSocketServer {
     // search for a game needing a player
     Game G = null;
     for (Game i : ActiveGames) {
-      if (i.Players == uta.cse3310.PlayerType.PLAYERONE) {
+      if (i.Players == uta.cse3310.PlayerType.PLAYERONE ||
+          i.Players == uta.cse3310.PlayerType.PLAYERTWO ||
+          i.Players == uta.cse3310.PlayerType.PLAYERTHREE) {
         G = i;
         System.out.println("found a match");
       }
@@ -116,7 +118,7 @@ public class App extends WebSocketServer {
     } else {
       // join an existing game
       System.out.println(" not a new game");
-      G.Players = PlayerType.PLAYERTWO;
+      G.Players = PlayerType.values()[G.Players.ordinal() + 1];
       G.StartGame();
     }
 
@@ -160,28 +162,19 @@ public class App extends WebSocketServer {
   public void onMessage(WebSocket conn, String message) {
     System.out
         .println("< " + Duration.between(startTime, Instant.now()).toMillis() + " " + "-" + " " + escape(message));
-
-    // Bring in the data from the webpage
-    // A UserEvent is all that is allowed at this point
     GsonBuilder builder = new GsonBuilder();
     Gson gson = builder.create();
     try{
       UserEvent U = gson.fromJson(message, UserEvent.class);
-  
-  
-      
-      // Get our Game Object
       Game G = conn.getAttachment();
       G.Update(U);
 
-      //don't know if I need this or not 
-      // if ("usernames".equals(U.type)) {
-        // Usernames message
-        // Send the message to everyone
-      //   String usernamesMessageJson = gson.toJson(new UserEvent("usernames", U.text, U.username));
-      //   broadcast(usernamesMessageJson);
-      //   return;
-      // }
+      System.err.println("message: " + message + message.contains("username") + U.GameId + G.GameId);
+      if (message.contains("username")){ //  && U.GameId == G.GameId
+        System.err.println("alusygasyglas");
+        G.PlayerUserNames.add(U.username);
+      }
+
       if ("chat".equals(U.type)) {
         // Chat message
         // Send the message to everyone
@@ -189,8 +182,6 @@ public class App extends WebSocketServer {
         broadcast(chatMessageJson);
         return;
       }
-      // send out the game state every time
-      // to everyone
       String jsonString;
       jsonString = gson.toJson(G);
   

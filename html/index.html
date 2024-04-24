@@ -37,15 +37,12 @@
         onclick="submitUsername(event)"
         style="font-size: 16pt"
       >
-        Start Game
+        Join
       </button>
     </form>
 
     <script>
-      // for test use in browser
-      //this is my new code that I put in, not done/correct yet though
-
-      //add a class that handles the json data like in tic tac toe, then I will call that when I send it over to the java side. I also need a class just like this one in the java code as well
+      var GameId = -1;
       class UserEvent {
         Button = -1;
         PlayerIdx = 0;
@@ -53,17 +50,19 @@
       }
       var connection = null;
       var serverUrl = "ws://" + window.location.hostname + ":9127";
+      
       // var serverUrl = "ws://" + window.location.hostname + ":9180" + (parseInt(location.port) + 100);
       connection = new WebSocket(serverUrl);
 
       connection.onopen = function (evt) {
         console.log("Connection opened.");
+        
       };
 
       connection.onclose = function (evt) {
-        console.log("Connection closed.");
-      };
-
+          console.log("Connection closed.");
+        };
+      var usernameList = [];
       function submitUsername(event) {
         if (event) {
           event.preventDefault();
@@ -71,16 +70,26 @@
 
         var username = document.getElementById("usernameInput").value;
         if (username.trim() !== "") {
+            // Check if the username is already taken
+            var usernames = document.querySelectorAll("#waiting-players-list li");
+            for (var i = 0; i < usernames.length; i++) {
+              if (usernames[i].textContent === username) {
+                alert("Username is already taken. Please choose a different one.");
+                return;
+              }
+            }
           //put the send from tic tac toe here
           var waitingPlayersList = document.getElementById(
-            "waiting-players-list"
-          );
+        "waiting-players-list");
           var newPlayerItem = document.createElement("li");
           newPlayerItem.textContent = username;
           waitingPlayersList.appendChild(newPlayerItem);
           U = new UserEvent();
+          U.username = username;
+          
           connection.send(JSON.stringify(U)); // Send the username to the server
           console.log(JSON.stringify(U));
+          usernameList.push(username);
         } else {
           alert("Please enter a valid username.");
         }
@@ -89,16 +98,37 @@
       document
         .getElementById("usernameForm")
         .addEventListener("submit", submitUsername);
-      // Listen for messages from the server
-      connection.onmessage = function (event) {
-        var message = JSON.parse(event.data);
-        // Assuming the server sends a message containing the username of the newly joined player
-        // Modify this logic according to the actual message format from the server
-        if (message.type === "new_player") {
-          var playerName = message.username;
-          addPlayerToList(playerName);
+        // Listen for messages from the server
+        connection.onmessage = function (event) {
+            var message = JSON.parse(event.data);
+            // Assuming the server sends a message containing the username of the newly joined player
+            // Modify this logic according to the actual message format from the server
+            if ("PlayerUserNames" in message) {
+                var playerUserNames = message["PlayerUserNames"];
+                
+                for (var i = 0; i < playerUserNames.length; i++) {
+                    addPlayerToList(playerUserNames[i]);
+                }
+            }
+            if (message.type === "chat-messages") {
+              addChatMessage(message.text, message.username);
+            } else if (message.type === "new_player") {
+              var playerName = message.username;
+              addPlayerToList(playerName);
+            }
+    };
+    function addPlayerToList(playerName){
+          //TODO: need to recieve it from the server and then show it on the screen for all players
+        if (!(usernameList.includes(playerName))) {
+            var waitingPlayersList = document.getElementById(
+        "waiting-players-list");
+            var newPlayerItem = document.createElement("li");
+            newPlayerItem.textContent = playerName;
+            waitingPlayersList.appendChild(newPlayerItem);
+            usernameList.push(playerName);
         }
-      };
+      }
+
     </script>
   </body>
 </html>
@@ -112,165 +142,131 @@
     <title>Lobby</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      .container {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        .container {
         display: flex;
         justify-content: space-between;
         padding: 10px;
       }
       .box {
-        flex: 1;
-        border: 1px solid #ccc;
-        /*
-                padding-top: 20px;
-                padding-bottom: 20px;
-                padding-left: 20px;
+          flex: 1;
+          border: 1px solid #ccc;
+          /*
+          padding-top: 20px;
+          padding-bottom: 20px;
+          padding-left: 20px;
                 padding-right: 20px;
                 */
-        padding: 20px;
-        margin-right: 20px;
-      }
-      .chat-box {
-        cursor: pointer;
-        height: 300px;
-        overflow-y: auto;
-      }
+                padding: 20px;
+                margin-right: 20px;
+            }
       .player-buttons {
         margin-top: 20px;
-      }
+    }
     </style>
   </head>
-
+  
   <body>
-    <div style="text-align: center">
-      <h1>The Word Search Game</h1>
-      <hr />
-      <h2 style="margin-bottom: 0px">Lobby</h2>
+      <div style="text-align: center">
+        <h1>The Word Search Game</h1>
+        <hr />
+        <h2 style="margin-bottom: 0px">Lobby</h2>
     </div>
-
+    
     <div class="container">
       <!-- Generate waiting players div in this style: -->
       <div id="waiting-players" class="box waiting-players-box">
-        <h2 style="margin-bottom: 0px">Players Waiting</h2>
+          <h2 style="margin-bottom: 0px">Players Waiting</h2>
         <hr style="margin-bottom: 20px" />
         <ol id="waiting-players-list"></ol>
-      </div>
-
-      <!-- End example div -->
-      <div class="box leaderboard-box">
+    </div>
+    
+    <!-- End example div -->
+    <div class="box leaderboard-box">
         <h2 style="margin-bottom: 0px">Leaderboard</h2>
         <hr style="margin-bottom: 20px" />
         <div class="container">
-          <!-- Generate rank div in this style: -->
-          <div id="rank">
-            <h3 style="margin-top: 0px">Rank</h3>
+            <!-- Generate rank div in this style: -->
+            <div id="rank">
+                <h3 style="margin-top: 0px">Rank</h3>
             <ol style="list-style: none; padding: 0px">
-              <li>1</li>
-              <li>2</li>
-              <li>3</li>
+                <li>1</li>
+                <li>2</li>
+                <li>3</li>
             </ol>
           </div>
           <!-- End example div -->
-
+          
           <div style="padding-top: 0px; border-right: 1px solid black"></div>
-
+          
           <!-- Generate nickname div in this style: -->
           <div id="nickname">
-            <h3 style="margin-top: 0px">Nickname</h3>
-            <ol style="list-style: none; padding: 0px">
+              <h3 style="margin-top: 0px">Nickname</h3>
+              <ol style="list-style: none; padding: 0px">
               <li>Player 4</li>
               <li>Player 5</li>
               <li>Player 6</li>
             </ol>
-          </div>
-          <!-- End example div -->
-
-          <div style="padding-top: 0px; border-right: 1px solid black"></div>
-
-          <!-- Generate score div in this style: -->
-          <div id="score">
+        </div>
+        <!-- End example div -->
+        
+        <div style="padding-top: 0px; border-right: 1px solid black"></div>
+        
+        <!-- Generate score div in this style: -->
+        <div id="score">
             <h3 style="margin-top: 0px">Score</h3>
             <ol style="list-style: none; padding: 0px">
               <li>1500</li>
               <li>1100</li>
               <li>990</li>
             </ol>
-          </div>
-          <!-- End example div -->
         </div>
-      </div>
+        <!-- End example div -->
     </div>
+</div>
+</div>
 
-    <div class="container">
-      <div class="box chat-box">
-        <h2 style="margin-bottom: 0px">Chat</h2>
-        <hr style="margin-bottom: 20px" />
-        <div id="chat-messages">
-          <!-- Chat messages will go here -->
-          <div><strong>Player 1:</strong> Hi everyone!</div>
-          <div><strong>Player 2:</strong> Hello!</div>
-          <!-- Example chat messages -->
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <input
-        id="chat-box"
-        placeholder="Send a message..."
-        style="font-size: 14pt; height: 20px; width: 100%"
-      />
-      <button
-        id="chat-button"
-        onclick="sendMessage()"
-        style="font-size: 14pt; margin-left: 10px; margin-right: 20px"
-      >
-        Send
-      </button>
-    </div>
-
-    <div class="container">
-      <div class="box player-buttons" style="text-align: center">
+<div class="container">
+    <div class="box player-buttons" style="text-align: center">
         <button onclick="selectPlayers(2)" style="font-size: 14pt">
-          Play With 2 Players
+            Play With 2 Players
         </button>
         <button onclick="selectPlayers(3)" style="font-size: 14pt">
-          Play With 3 Players
+            Play With 3 Players
         </button>
         <button onclick="selectPlayers(4)" style="font-size: 14pt">
-          Play With 4 Players
+            Play With 4 Players
         </button>
-      </div>
     </div>
+</div>
 
-    <script>
-      function selectPlayers(numPlayers) {
+<script>
+    function selectPlayers(numPlayers) {
         console.log(numPlayers + " players selected.");
-      }
+    }
     </script>
   </body>
-</html>
-
-<!-- game.html -->
-<!DOCTYPE html>
-<html lang="en">
-  <head>
+  </html>
+  
+  <!-- game.html -->
+  <html lang="en">
+      <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Word Game</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         box-sizing: border-box;
-      }
-
-      .grid {
+    }
+    
+    .grid {
         border: 1px solid black;
         padding: 2px;
         margin: 0 auto;
@@ -279,9 +275,19 @@
         grid-template-rows: repeat(50, 1fr);
       }
       .cell {
-        font-size: 14.5pt;
-        padding: 1px;
-        text-align: center;
+          font-size: 14.5pt;
+          padding: 1px;
+          text-align: center;
+          user-select: none;
+          background-color: white;
+        }
+      .selected
+      {
+          background-color: aqua;
+      }
+      .used
+      {
+          background-color: aqua;
       }
 
       .container {
@@ -312,23 +318,24 @@
       <div id="grid" class="grid">
         <!-- 50x50 grid with one letter each -->
         <script>
-          const grid = document.getElementById("grid");
+          const grid = document.getElementById('grid')
 
           // create cells in the format <div class="cell">A</div>
           // generating random letters
-          const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+          const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
           const charactersLength = characters.length;
-          for (let i = 0; i < 50; i++) {
-            for (let j = 0; j < 50; j++) {
-              const cell = document.createElement("div");
-              cell.classList.add("cell");
-              cell.textContent = characters.charAt(
-                Math.floor(Math.random() * charactersLength)
-              );
-              grid.appendChild(cell);
-            }
+          for (let i = 0; i < 50; i++)
+          {
+              for (let j = 0; j < 50; j++)
+              {
+                  const cell = document.createElement('div')
+                  cell.classList.add('cell')
+                  cell.textContent = characters.charAt(Math.floor(Math.random() * charactersLength)); // random letters
+                  // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
+                  grid.appendChild(cell);
+              }
           }
-        </script>
+      </script>
         <!-- End of example script -->
       </div>
 
@@ -425,8 +432,8 @@
           <hr style="margin-bottom: 20px" />
           <div id="chat-messages" style="overflow-y: auto">
             <!-- Chat messages will go here -->
-            <div><strong>Player 1:</strong> Hi everyone!</div>
-            <div><strong>Player 2:</strong> Hello!</div>
+            <!-- <div><strong>Player 1:</strong> Hi everyone!</div>
+            <div><strong>Player 2:</strong> Hello!</div> -->
             <!-- Example chat messages -->
           </div>
         </div>
@@ -459,7 +466,7 @@
         var username = usernameInput.value.trim();
         if (message.trim() !== "") {
           var userMessage = {
-            type: "chat_message",
+            type: "chat-messages",
             text: message,
             username: username,
           }; // Add your username logic as needed
@@ -471,16 +478,7 @@
         }
       }
 
-      connection.onmessage = function (event) {
-        var message = JSON.parse(event.data);
-        if (message.type === "chat_message") {
-          addChatMessage(message.text, message.username);
-        } else if (message.type === "new_player") {
-          var playerName = message.username;
-          addPlayerToList(playerName);
-        }
-      };
-
+      
       function addChatMessage(message, username) {
         var chatMessages = document.getElementById("chat-messages");
         var newMessage = document.createElement("div");
@@ -489,6 +487,7 @@
         chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
       }
 
+      // highlighting will not work if errors are thrown
       document.addEventListener("DOMContentLoaded", function () {
         let isMouseDown = false;
         let startCell = null;
