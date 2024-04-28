@@ -47,16 +47,143 @@
         Button = -1;
         PlayerIdx = 0;
         GameId = 0;
+        Command = "User"; // User is default, "Grid" to get the grid
       }
       var connection = null;
       var serverUrl = "ws://" + window.location.hostname + ":9127";
-      
+
+      let isMouseDown = false;
+      let startCell = null;
+      let endCell = null;
+      const numRows = 50;
+      const numCols = 50;
+
+      function selectedCellsToConsole() {
+        const selectedCells = document.querySelectorAll(".selected");
+        let selectedLetters = "";
+
+        selectedCells.forEach((cell) => {
+          selectedLetters += cell.textContent.trim();
+        });
+
+        console.log(selectedLetters);
+      }
+
+      function getRowCol(index) {
+          const row = Math.floor(index / numCols);
+          const col = index % numCols;
+          return [row, col];
+        }
+
+        function getDist(coord1, coord2) {
+          return Math.sqrt(
+            Math.pow(coord2[0] - coord1[0], 2) +
+              Math.pow(coord2[1] - coord1[1], 2)
+          );
+        }
+
+
+      function selectRange(start, end) {
+          const cells = document.querySelectorAll(".cell");
+
+          let startRowCol = getRowCol(start);
+          let endRowCol = getRowCol(end);
+
+          let deltaX = endRowCol[0] - startRowCol[0];
+          let deltaY = endRowCol[1] - startRowCol[1];
+          let m = 0;
+          if (deltaX == 0) {
+            m = "undef";
+          } else {
+            m = deltaY / deltaX;
+
+            if (m != 0 && m != 1 && m != -1) {
+              m = Math.floor(m);
+
+              if (m < -1 || m > 1) {
+                m = "undef";
+              }
+            }
+          }
+          let dist = getDist(startRowCol, endRowCol);
+
+          cells.forEach((cell, index) => {
+            let currRowCol = getRowCol(index);
+
+            let currDeltaX = currRowCol[0] - startRowCol[0];
+            let currDeltaY = currRowCol[1] - startRowCol[1];
+            let currM = 0;
+            if (currDeltaX == 0) {
+              currM = "undef";
+            } else {
+              currM = currDeltaY / currDeltaX;
+            }
+
+            let currDist = getDist(startRowCol, currRowCol);
+
+            if (!cell.classList.contains("used")) {
+              if (index == start) {
+                cell.classList.add("selected");
+              } else if (currDist <= dist && currM == m) {
+                if (
+                  Math.sign(currDeltaX) == Math.sign(deltaX) &&
+                  Math.sign(currDeltaY) == Math.sign(deltaY)
+                ) {
+                  cell.classList.add("selected");
+                }
+              } else {
+                cell.classList.remove("selected");
+              }
+            }
+          });
+        }
+
+      function selectCells() {
+          const cells = document.querySelectorAll(".cell");
+          cells.forEach((cell, index) => {
+            cell.addEventListener("mousedown", function () {
+              if (!cell.classList.contains("used")) {
+                isMouseDown = true;
+                startCell = index;
+                cell.classList.add("selected");
+              }
+            });
+
+            cell.addEventListener("mouseover", function () {
+              if (isMouseDown && !cell.classList.contains("used")) {
+                endCell = index;
+                selectRange(startCell, endCell);
+              }
+            });
+          });
+
+          document.addEventListener("mouseup", function () {
+            let hasSelected = false;
+            cells.forEach((cell) => {
+              if (cell.classList.contains("selected")) {
+                hasSelected = true;
+              }
+            });
+
+            if (hasSelected) {
+              // Submit/check logic can be implemented here
+              selectedCellsToConsole(); // testing letter selection in console
+
+              isMouseDown = false;
+              startCell = null;
+              endCell = null;
+              cells.forEach((cell, index) => {
+                cell.classList.remove("selected");
+              });
+            }
+          });
+        }
+
       // var serverUrl = "ws://" + window.location.hostname + ":9180" + (parseInt(location.port) + 100);
       connection = new WebSocket(serverUrl);
 
       connection.onopen = function (evt) {
         console.log("Connection opened.");
-        
       };
 
       connection.onclose = function (evt) {
@@ -79,8 +206,7 @@
               }
             }
           //put the send from tic tac toe here
-          var waitingPlayersList = document.getElementById(
-        "waiting-players-list");
+          var waitingPlayersList = document.getElementById("waiting-players-list");
           var newPlayerItem = document.createElement("li");
           newPlayerItem.textContent = username;
           waitingPlayersList.appendChild(newPlayerItem);
@@ -97,10 +223,12 @@
 
       document
         .getElementById("usernameForm")
-        .addEventListener("submit", submitUsername);
-        // Listen for messages from the server
-        connection.onmessage = function (event) {
-            var message = JSON.parse(event.data);
+        .addEventListener("submit", submitUsername)
+
+
+      // Listen for messages from the server
+      connection.onmessage = function (event) {
+          var message = JSON.parse(event.data);
             if ("PlayerUserNames" in message) {
                 var playerUserNames = message["PlayerUserNames"];
                 
@@ -114,7 +242,27 @@
               var playerName = message.username;
               addPlayerToList(playerName);
             }
-    };
+
+            if(message.wordGrid != null && message.wordGrid.Grid.length > 0) {
+              var size = message.wordGrid.Grid.length;
+              const grid = document.getElementById('grid')
+
+              // create cells in the format <div class="cell">A</div>
+              for(var row=0; row<size; row++)
+              {
+                for(var col=0; col<size; col++)
+                {
+                  var temp = message.wordGrid.Grid[row][col];
+                  const cell = document.createElement('div')
+                  cell.classList.add('cell')
+                  cell.textContent = temp;
+                  // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
+                  grid.appendChild(cell);
+                }
+              }
+              selectCells();
+            }
+      };
     function addPlayerToList(playerName){
           //TODO: need to recieve it from the server and then show it on the screen for all players
         if (!(usernameList.includes(playerName))) {
@@ -127,6 +275,9 @@
         }
       }
 
+      function gridStart(){
+
+      }
     </script>
   </body>
 </html>
@@ -316,23 +467,23 @@
       <div id="grid" class="grid">
         <!-- 50x50 grid with one letter each -->
         <script>
-          const grid = document.getElementById('grid')
+          // const grid = document.getElementById('grid')
 
-          // create cells in the format <div class="cell">A</div>
-          // generating random letters
-          const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-          const charactersLength = characters.length;
-          for (let i = 0; i < 50; i++)
-          {
-              for (let j = 0; j < 50; j++)
-              {
-                  const cell = document.createElement('div')
-                  cell.classList.add('cell')
-                  cell.textContent = characters.charAt(Math.floor(Math.random() * charactersLength)); // random letters
-                  // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
-                  grid.appendChild(cell);
-              }
-          }
+          // // create cells in the format <div class="cell">A</div>
+          // // generating random letters
+          // const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+          // const charactersLength = characters.length;
+          // for (let i = 0; i < 50; i++)
+          // {
+          //     for (let j = 0; j < 50; j++)
+          //     {
+          //         const cell = document.createElement('div')
+          //         cell.classList.add('cell')
+          //         cell.textContent = characters.charAt(Math.floor(Math.random() * charactersLength)); // random letters
+          //         // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
+          //         grid.appendChild(cell);
+          //     }
+          // }
       </script>
         <!-- End of example script -->
       </div>
@@ -487,135 +638,135 @@
 
       // highlighting will not work if errors are thrown
       document.addEventListener("DOMContentLoaded", function () {
-        let isMouseDown = false;
-        let startCell = null;
-        let endCell = null;
+        // let isMouseDown = false;
+        // let startCell = null;
+        // let endCell = null;
 
         // Grid dimensions
-        const numRows = 50;
-        const numCols = 50;
+        // const numRows = 50;
+        // const numCols = 50;
 
-        function selectCells() {
-          const cells = document.querySelectorAll(".cell");
-          cells.forEach((cell, index) => {
-            cell.addEventListener("mousedown", function () {
-              if (!cell.classList.contains("used")) {
-                isMouseDown = true;
-                startCell = index;
-                cell.classList.add("selected");
-              }
-            });
+        // function selectCells() {
+        //   const cells = document.querySelectorAll(".cell");
+        //   cells.forEach((cell, index) => {
+        //     cell.addEventListener("mousedown", function () {
+        //       if (!cell.classList.contains("used")) {
+        //         isMouseDown = true;
+        //         startCell = index;
+        //         cell.classList.add("selected");
+        //       }
+        //     });
 
-            cell.addEventListener("mouseover", function () {
-              if (isMouseDown && !cell.classList.contains("used")) {
-                endCell = index;
-                selectRange(startCell, endCell);
-              }
-            });
-          });
+        //     cell.addEventListener("mouseover", function () {
+        //       if (isMouseDown && !cell.classList.contains("used")) {
+        //         endCell = index;
+        //         selectRange(startCell, endCell);
+        //       }
+        //     });
+        //   });
 
-          document.addEventListener("mouseup", function () {
-            let hasSelected = false;
-            cells.forEach((cell) => {
-              if (cell.classList.contains("selected")) {
-                hasSelected = true;
-              }
-            });
+        //   document.addEventListener("mouseup", function () {
+        //     let hasSelected = false;
+        //     cells.forEach((cell) => {
+        //       if (cell.classList.contains("selected")) {
+        //         hasSelected = true;
+        //       }
+        //     });
 
-            if (hasSelected) {
-              // Submit/check logic can be implemented here
-              selectedCellsToConsole(); // testing letter selection in console
+        //     if (hasSelected) {
+        //       // Submit/check logic can be implemented here
+        //       selectedCellsToConsole(); // testing letter selection in console
 
-              isMouseDown = false;
-              startCell = null;
-              endCell = null;
-              cells.forEach((cell, index) => {
-                cell.classList.remove("selected");
-              });
-            }
-          });
-        }
+        //       isMouseDown = false;
+        //       startCell = null;
+        //       endCell = null;
+        //       cells.forEach((cell, index) => {
+        //         cell.classList.remove("selected");
+        //       });
+        //     }
+        //   });
+        // }
 
-        function selectRange(start, end) {
-          const cells = document.querySelectorAll(".cell");
+        // function selectRange(start, end) {
+        //   const cells = document.querySelectorAll(".cell");
 
-          let startRowCol = getRowCol(start);
-          let endRowCol = getRowCol(end);
+        //   let startRowCol = getRowCol(start);
+        //   let endRowCol = getRowCol(end);
 
-          let deltaX = endRowCol[0] - startRowCol[0];
-          let deltaY = endRowCol[1] - startRowCol[1];
-          let m = 0;
-          if (deltaX == 0) {
-            m = "undef";
-          } else {
-            m = deltaY / deltaX;
+        //   let deltaX = endRowCol[0] - startRowCol[0];
+        //   let deltaY = endRowCol[1] - startRowCol[1];
+        //   let m = 0;
+        //   if (deltaX == 0) {
+        //     m = "undef";
+        //   } else {
+        //     m = deltaY / deltaX;
 
-            if (m != 0 && m != 1 && m != -1) {
-              m = Math.floor(m);
+        //     if (m != 0 && m != 1 && m != -1) {
+        //       m = Math.floor(m);
 
-              if (m < -1 || m > 1) {
-                m = "undef";
-              }
-            }
-          }
-          let dist = getDist(startRowCol, endRowCol);
+        //       if (m < -1 || m > 1) {
+        //         m = "undef";
+        //       }
+        //     }
+        //   }
+        //   let dist = getDist(startRowCol, endRowCol);
 
-          cells.forEach((cell, index) => {
-            let currRowCol = getRowCol(index);
+        //   cells.forEach((cell, index) => {
+        //     let currRowCol = getRowCol(index);
 
-            let currDeltaX = currRowCol[0] - startRowCol[0];
-            let currDeltaY = currRowCol[1] - startRowCol[1];
-            let currM = 0;
-            if (currDeltaX == 0) {
-              currM = "undef";
-            } else {
-              currM = currDeltaY / currDeltaX;
-            }
+        //     let currDeltaX = currRowCol[0] - startRowCol[0];
+        //     let currDeltaY = currRowCol[1] - startRowCol[1];
+        //     let currM = 0;
+        //     if (currDeltaX == 0) {
+        //       currM = "undef";
+        //     } else {
+        //       currM = currDeltaY / currDeltaX;
+        //     }
 
-            let currDist = getDist(startRowCol, currRowCol);
+        //     let currDist = getDist(startRowCol, currRowCol);
 
-            if (!cell.classList.contains("used")) {
-              if (index == start) {
-                cell.classList.add("selected");
-              } else if (currDist <= dist && currM == m) {
-                if (
-                  Math.sign(currDeltaX) == Math.sign(deltaX) &&
-                  Math.sign(currDeltaY) == Math.sign(deltaY)
-                ) {
-                  cell.classList.add("selected");
-                }
-              } else {
-                cell.classList.remove("selected");
-              }
-            }
-          });
-        }
+        //     if (!cell.classList.contains("used")) {
+        //       if (index == start) {
+        //         cell.classList.add("selected");
+        //       } else if (currDist <= dist && currM == m) {
+        //         if (
+        //           Math.sign(currDeltaX) == Math.sign(deltaX) &&
+        //           Math.sign(currDeltaY) == Math.sign(deltaY)
+        //         ) {
+        //           cell.classList.add("selected");
+        //         }
+        //       } else {
+        //         cell.classList.remove("selected");
+        //       }
+        //     }
+        //   });
+        // }
 
-        function selectedCellsToConsole() {
-          const selectedCells = document.querySelectorAll(".selected");
-          let selectedLetters = "";
+        // function selectedCellsToConsole() {
+        //   const selectedCells = document.querySelectorAll(".selected");
+        //   let selectedLetters = "";
 
-          selectedCells.forEach((cell) => {
-            selectedLetters += cell.textContent.trim();
-          });
+        //   selectedCells.forEach((cell) => {
+        //     selectedLetters += cell.textContent.trim();
+        //   });
 
-          console.log(selectedLetters);
-        }
+        //   console.log(selectedLetters);
+        // }
 
-        function getRowCol(index) {
-          const row = Math.floor(index / numCols);
-          const col = index % numCols;
-          return [row, col];
-        }
+        // function getRowCol(index) {
+        //   const row = Math.floor(index / numCols);
+        //   const col = index % numCols;
+        //   return [row, col];
+        // }
 
-        function getDist(coord1, coord2) {
-          return Math.sqrt(
-            Math.pow(coord2[0] - coord1[0], 2) +
-              Math.pow(coord2[1] - coord1[1], 2)
-          );
-        }
+        // function getDist(coord1, coord2) {
+        //   return Math.sqrt(
+        //     Math.pow(coord2[0] - coord1[0], 2) +
+        //       Math.pow(coord2[1] - coord1[1], 2)
+        //   );
+        // }
 
-        selectCells();
+        //selectCells();
       });
     </script>
   </body>

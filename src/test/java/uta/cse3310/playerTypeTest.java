@@ -1,7 +1,7 @@
 package uta.cse3310;
 import junit.framework.TestCase;
 
-public class playerTypeTest {
+public class playerTypeTest extends TestCase {
    public void testPlayerTypeValues() {
       assertEquals("NOPLAYER", PlayerType.NOPLAYER.toString());
       assertEquals("PLAYERONE", PlayerType.PLAYERONE.toString());
@@ -10,11 +10,6 @@ public class playerTypeTest {
       assertEquals("PLAYERFOUR", PlayerType.PLAYERFOUR.toString());
   }
 
-  private void assertEquals(String string, String string2) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'assertEquals'");
-}
-
 public void testPlayerTypeOrdinal() {
       assertEquals(0, PlayerType.NOPLAYER.ordinal());
       assertEquals(1, PlayerType.PLAYERONE.ordinal());
@@ -22,11 +17,6 @@ public void testPlayerTypeOrdinal() {
       assertEquals(3, PlayerType.PLAYERTHREE.ordinal());
       assertEquals(4, PlayerType.PLAYERFOUR.ordinal());
   }
-
-  private void assertEquals(int i, int ordinal) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'assertEquals'");
-}
 
 public void testPlayerTypeEquality() {
       assertEquals(PlayerType.NOPLAYER, PlayerType.NOPLAYER);
@@ -42,15 +32,5 @@ public void testPlayerTypeEquality() {
       assertNotSame(PlayerType.PLAYERTWO, PlayerType.PLAYERFOUR);
       assertNotSame(PlayerType.PLAYERTHREE, PlayerType.PLAYERFOUR);
   }
-
-private void assertNotSame(PlayerType playertwo, PlayerType playerthree) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'assertNotSame'");
-}
-
-private void assertEquals(PlayerType noplayer, PlayerType noplayer2) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'assertEquals'");
-}
 }
 
