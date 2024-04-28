@@ -107,7 +107,8 @@ public class App extends WebSocketServer {
     }
 
     // No matches ? Create a new Game.
-    if (G == null) {
+     // No matches ? Create a new Game.
+     if (G == null) {
       G = new Game(stats);
       G.GameId = GameId;
       GameId++;
@@ -115,6 +116,25 @@ public class App extends WebSocketServer {
       G.Players = PlayerType.PLAYERONE;
       ActiveGames.add(G);
       System.out.println(" creating a new Game");
+
+      //putting in the generated word grid
+      G.wordGrid = new WordGrid();
+      G.wordGrid.Grid = new char[50][50]; 
+      String filename = "words.txt";
+      int gridSize = 50;
+      int numWords = (int) (gridSize * .8);
+      System.out.println(numWords);
+      int[][] coordinatesList = new int[2][(int) numWords];
+      char[][] shownGrid = new char[gridSize][gridSize];
+      
+      G.wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
+      for (var i = 0; i < 50; i++)
+      {
+          for (var j = 0; j < 50; j++)
+          {
+            G.wordGrid.Grid[i][j] = shownGrid[i][j];
+          }
+      }
     } else {
       // join an existing game
       System.out.println(" not a new game");
