@@ -2,7 +2,7 @@
 
 
  import junit.framework.TestCase;
- import junit.framework.TestSuite;
+ //import junit.framework.TestSuite;
  import org.java_websocket.WebSocket;
  import org.java_websocket.drafts.Draft_6455;
  import org.java_websocket.handshake.ClientHandshake;
