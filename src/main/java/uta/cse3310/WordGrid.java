@@ -202,7 +202,7 @@ public class WordGrid {
          
       }
 
-      // randomizeSpaces(gridSize, shownGrid);
+      randomizeSpaces(gridSize, shownGrid);
 
    }
 
