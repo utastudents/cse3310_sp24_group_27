@@ -54,7 +54,7 @@ jobs:
            ssh production 'echo "[Service]" >> .config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Type=simple" >> .config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Restart=always" >> .config/systemd/user/${{ vars.service_name }}.service'
-           ssh production 'echo "RestartSec=5" >> .config/systemd/user/${{ vars.service_name }}.service'
+           ssh production 'echo "RestartSec=216000" >> .config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Environment=VERSION=\"${{ github.sha }}\"" >>.config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Environment=WEBSOCKET_PORT=${{ vars.websocket_port }}" >>.config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Environment=HTTP_PORT=${{ vars.http_port }}" >>.config/systemd/user/${{ vars.service_name }}.service'
