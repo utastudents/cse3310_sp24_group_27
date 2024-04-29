@@ -28,12 +28,7 @@ import junit.framework.TestCase;
 
      
      public void testCheckAndAwardPoints() {
-         Statistics stats = new Statistics();
-         // Add test cases for checkAndAwardPoints method
-         // For example:
-         //int[][] coordinatesList = {{1, 2}, {3, 4}};
-         //String[][] shownGrid = {{"X", "O"}, {"O", "X"}};
-         //assertEquals(5, stats.checkAndAwardPoints(shownGrid, coordinatesList));
+         new Statistics();
      }
 
      

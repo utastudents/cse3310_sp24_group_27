@@ -25,5 +25,9 @@ public class UserEvent {
         text = _Text;
         username = _Username;
     }
+
+    public UserEvent(int i, PlayerType playerone, int j, int k) {
+        
+    }
 }
 
