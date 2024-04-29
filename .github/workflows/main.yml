@@ -22,7 +22,7 @@ jobs:
           echo "Service name = ${{ vars.service_name }}"
           echo "http port = ${{ vars.http_port }}"
           echo "websocket port = ${{ vars.websocket_port }}"
-          echo "version = $${ github.sha }}"
+          echo "version = ${{ github.sha }}"
           # On to the work at hand.
           mkdir -p ~/.ssh/
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/production.key
