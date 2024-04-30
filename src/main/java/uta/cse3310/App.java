@@ -122,7 +122,7 @@ public class App extends WebSocketServer {
 
       //putting in the generated word grid
       G.wordGrid = new WordGrid();
-      G.wordGrid.Grid = new char[50][50]; 
+      G.wordGrid.Grid = new char[50][50];
       String filename = "words.txt";
       int gridSize = 50;
       int numWords = (int) (gridSize * .8);
@@ -221,6 +221,7 @@ public class App extends WebSocketServer {
           return;
         }
       }
+      
       String jsonString;
       jsonString = gson.toJson(G);
   
@@ -274,8 +275,6 @@ public class App extends WebSocketServer {
     } else {
       ver = System.getenv("VERSION");
     }
-
-    System.out.println("git hash: " + ver);
 
     // Set up the http server
     String HttpPortEnv = System.getenv("HTTP_PORT");

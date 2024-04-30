@@ -1,4 +1,3 @@
-<!-- login.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,330 +11,7 @@
         padding: 0;
         box-sizing: border-box;
       }
-    </style>
-  </head>
-
-  <body>
-    <div style="text-align: center">
-      <h1>The Word Search Game</h1>
-      <hr />
-    </div>
-    
-    <div style="text-align: left">
-      <h1 style=" font-size: smaller"></h1>
-      <hr />
-    </div>
-
-    <form id="usernameForm" style="text-align: center; padding: 10px">
-      <label for="usernameInput" style="font-size: 16pt"
-        >Enter a username to start:</label
-      >
-      <input
-        type="text"
-        id="usernameInput"
-        placeholder="Enter your username"
-        required
-        style="font-size: 16pt"
-      />
-      <button
-        type="button"
-        onclick="submitUsername(event)"
-        style="font-size: 16pt"
-      >
-        Join
-      </button>
-    </form>
-
-    <script>
-      var GameId = -1;
-      class UserEvent {
-        Button = -1;
-        PlayerIdx = 0;
-        GameId = 0;
-        Command = "User"; // User is default, "Grid" to get the grid
-      }
-      var connection = null;
-      var serverUrl = "ws://" + window.location.hostname + ":9127";
-      var startPoint;
-      var endPoint;
-      let isMouseDown = false;
-      let startCell = null;
-      let endCell = null;
-      const numRows = 50;
-      const numCols = 50;
-
-      function selectedCellsToConsole() {
-        const selectedCells = document.querySelectorAll(".selected");
-        let selectedLetters = "";
-        selectedCells.forEach((cell) => {
-          selectedLetters += cell.textContent.trim();
-        });
-        var highlightedLetters = {
-            type: "word-selection",
-            text: selectedLetters,
-            username: document.getElementById("usernameInput").value,
-            coordinates: [startPoint, endPoint]
-          }; 
-        connection.send(JSON.stringify(highlightedLetters)); // Send the username to the server
-        console.log(JSON.stringify(highlightedLetters));
-        
-      }
-
-      function getRowCol(index) {
-          const row = Math.floor(index / numCols);
-          const col = index % numCols;
-          return [row, col];
-        }
-
-        function getDist(coord1, coord2) {
-          return Math.sqrt(
-            Math.pow(coord2[0] - coord1[0], 2) +
-              Math.pow(coord2[1] - coord1[1], 2)
-          );
-        }
-
-
-      function selectRange(start, end, addClass) {
-          const cells = document.querySelectorAll(".cell");
-
-          let startRowCol = getRowCol(start);
-          let endRowCol = getRowCol(end);
-          startPoint = startRowCol;
-          endPoint = endRowCol;
-          let deltaX = endRowCol[0] - startRowCol[0];
-          let deltaY = endRowCol[1] - startRowCol[1];
-          let m = 0;
-          if (deltaX == 0) {
-            m = "undef";
-          } else {
-            m = deltaY / deltaX;
-
-            if (m != 0 && m != 1 && m != -1) {
-              m = Math.floor(m);
-
-              if (m < -1 || m > 1) {
-                m = "undef";
-              }
-            }
-          }
-          let dist = getDist(startRowCol, endRowCol);
-
-          cells.forEach((cell, index) => {
-            let currRowCol = getRowCol(index);
-
-            let currDeltaX = currRowCol[0] - startRowCol[0];
-            let currDeltaY = currRowCol[1] - startRowCol[1];
-            let currM = 0;
-            if (currDeltaX == 0) {
-              currM = "undef";
-            } else {
-              currM = currDeltaY / currDeltaX;
-            }
-
-            let currDist = getDist(startRowCol, currRowCol);
-
-            if (addClass == "selected") {
-              if (!cell.classList.contains("used")) {
-                if (index == start) {
-                  cell.classList.add("selected");
-                } else if (currDist <= dist && currM == m) {
-                  if (
-                    Math.sign(currDeltaX) == Math.sign(deltaX) &&
-                    Math.sign(currDeltaY) == Math.sign(deltaY)
-                  ) {
-                    cell.classList.add("selected");
-                  }
-                }
-                else {
-                  cell.classList.remove("selected");
-                }
-              }
-            } else if (addClass == "used") {
-              if (index == start) {
-                cell.classList.add("used");
-              } else if (currDist <= dist && currM == m) {
-                if (
-                  Math.sign(currDeltaX) == Math.sign(deltaX) &&
-                  Math.sign(currDeltaY) == Math.sign(deltaY)
-                ) {
-                  cell.classList.add("used");
-                  console.log("Cell at index " + currRowCol + " changed color.");
-                }
-              }
-            }
-            
-          });
-        }
-
-      function selectCells() {
-          const cells = document.querySelectorAll(".cell");
-          cells.forEach((cell, index) => {
-            cell.addEventListener("mousedown", function () {
-              if (!cell.classList.contains("used")) {
-                isMouseDown = true;
-                startCell = index;
-                cell.classList.add("selected");
-              }
-            });
-
-            cell.addEventListener("mouseover", function () {
-              if (isMouseDown && !cell.classList.contains("used")) {
-                endCell = index;
-                selectRange(startCell, endCell, "selected");
-              }
-            });
-          });
-
-          document.addEventListener("mouseup", function () {
-            let hasSelected = false;
-            cells.forEach((cell) => {
-              if (cell.classList.contains("selected")) {
-                hasSelected = true;
-              }
-            });
-
-            if (hasSelected) {
-              selectedCellsToConsole(); // testing letter selection in console
-
-              isMouseDown = false;
-              cells.forEach((cell, index) => {
-                cell.classList.remove("selected");
-              });
-            }
-          });
-        }
-
-      // var serverUrl = "ws://" + window.location.hostname + ":9180" + (parseInt(location.port) + 100);
-      connection = new WebSocket(serverUrl);
-
-      connection.onopen = function (evt) {
-        console.log("Connection opened.");
-      };
-
-      connection.onclose = function (evt) {
-          console.log("Connection closed.");
-        };
-      var usernameList = [];
-      function submitUsername(event) {
-        if (event) {
-          event.preventDefault();
-        }
-
-        var username = document.getElementById("usernameInput").value;
-        if (username.trim() !== "") {
-            // Check if the username is already taken
-            var usernames = document.querySelectorAll("#waiting-players-list li");
-            for (var i = 0; i < usernames.length; i++) {
-              if (usernames[i].textContent === username) {
-                alert("Username is already taken. Please choose a different one.");
-                return;
-              }
-            }
-          //put the send from tic tac toe here
-          var waitingPlayersList = document.getElementById("waiting-players-list");
-          var newPlayerItem = document.createElement("li");
-          newPlayerItem.textContent = username;
-          waitingPlayersList.appendChild(newPlayerItem);
-          U = new UserEvent();
-          U.username = username;
-          
-          connection.send(JSON.stringify(U)); // Send the username to the server
-          console.log(JSON.stringify(U));
-          usernameList.push(username);
-        } else {
-          alert("Please enter a valid username.");
-        }
-      }
-
-      document
-        .getElementById("usernameForm")
-        .addEventListener("submit", submitUsername)
-
-
-      // Listen for messages from the server
-      connection.onmessage = function (event) {
-          var message = JSON.parse(event.data);
-
-          if (message.type === "wordCoordinates"){
-              console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
-              console.log("Start idx: " + startCell + " End idx: " + endCell);
-              selectRange(startCell, endCell, "used");
-          }
-          console.log("Message received: " + event.data);
-            if ("PlayerUserNames" in message) {
-                var playerUserNames = message["PlayerUserNames"];
-                
-                for (var i = 0; i < playerUserNames.length; i++) {
-                    addPlayerToList(playerUserNames[i]);
-                }
-            }
-
-            if (message.type === "chat") {
-              addChatMessage(message.text, message.username);
-            } else if (message.type === "new_player") {
-              var playerName = message.username;
-              addPlayerToList(playerName);
-            }
-
-            if ("ver" in message) {
-              document.title = "TWSG " + message.ver;
-            }
-
-            if(message.wordGrid != null && message.wordGrid.Grid.length > 0) {
-              var size = message.wordGrid.Grid.length;
-              const grid = document.getElementById('grid');
-
-              // create cells in the format <div class="cell">A</div>
-              grid.innerHTML = ""; // grid NEEDS to be cleared if appending children; have to save html format of grid to update properly
-              for(var row=0; row<size; row++)
-              {
-                for(var col=0; col<size; col++)
-                {
-                  var temp = message.wordGrid.Grid[row][col];
-                  const cell = document.createElement('div')
-                  cell.classList.add('cell')
-                  cell.textContent = temp;
-                  // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
-                  grid.appendChild(cell);
-                }
-              }
-              selectCells();
-            }
-      };
-    function addPlayerToList(playerName){
-          //TODO: need to recieve it from the server and then show it on the screen for all players
-        if (!(usernameList.includes(playerName))) {
-            var waitingPlayersList = document.getElementById(
-        "waiting-players-list");
-            var newPlayerItem = document.createElement("li");
-            newPlayerItem.textContent = playerName;
-            waitingPlayersList.appendChild(newPlayerItem);
-            usernameList.push(playerName);
-        }
-      }
-
-      function gridStart(){
-
-      }
-    </script>
-  </body>
-</html>
-
-<!-- lobby.html -->
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lobby</title>
-    <style>
-      body {
-          font-family: Arial, sans-serif;
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        .container {
+      .container {
         display: flex;
         justify-content: space-between;
         padding: 10px;
@@ -343,118 +19,13 @@
       .box {
           flex: 1;
           border: 1px solid #ccc;
-          /*
-          padding-top: 20px;
-          padding-bottom: 20px;
-          padding-left: 20px;
-                padding-right: 20px;
-                */
-                padding: 20px;
-                margin-right: 20px;
-            }
+          padding: 20px;
+          margin-right: 20px;
+      }
       .player-buttons {
         margin-top: 20px;
-    }
-    </style>
-  </head>
-  
-  <body>
-      <div style="text-align: center">
-        <h1>The Word Search Game</h1>
-        <hr />
-        <h2 style="margin-bottom: 0px">Lobby</h2>
-    </div>
-    
-    <div class="container">
-      <!-- Generate waiting players div in this style: -->
-      <div id="waiting-players" class="box waiting-players-box">
-          <h2 style="margin-bottom: 0px">Players Waiting</h2>
-        <hr style="margin-bottom: 20px" />
-        <ol id="waiting-players-list"></ol>
-    </div>
-    
-    <!-- End example div -->
-    <div class="box leaderboard-box">
-        <h2 style="margin-bottom: 0px">Leaderboard</h2>
-        <hr style="margin-bottom: 20px" />
-        <div class="container">
-            <!-- Generate rank div in this style: -->
-            <div id="rank">
-                <h3 style="margin-top: 0px">Rank</h3>
-            <ol style="list-style: none; padding: 0px">
-                <li>1</li>
-                <li>2</li>
-                <li>3</li>
-            </ol>
-          </div>
-          <!-- End example div -->
-          
-          <div style="padding-top: 0px; border-right: 1px solid black"></div>
-          
-          <!-- Generate nickname div in this style: -->
-          <div id="nickname">
-              <h3 style="margin-top: 0px">Nickname</h3>
-              <ol style="list-style: none; padding: 0px">
-              <li>Player 4</li>
-              <li>Player 5</li>
-              <li>Player 6</li>
-            </ol>
-        </div>
-        <!-- End example div -->
-        
-        <div style="padding-top: 0px; border-right: 1px solid black"></div>
-        
-        <!-- Generate score div in this style: -->
-        <div id="score">
-            <h3 style="margin-top: 0px">Score</h3>
-            <ol style="list-style: none; padding: 0px">
-              <li>1500</li>
-              <li>1100</li>
-              <li>990</li>
-            </ol>
-        </div>
-        <!-- End example div -->
-    </div>
-</div>
-</div>
-
-<div class="container">
-    <div class="box player-buttons" style="text-align: center">
-        <button onclick="selectPlayers(2)" style="font-size: 14pt">
-            Play With 2 Players
-        </button>
-        <button onclick="selectPlayers(3)" style="font-size: 14pt">
-            Play With 3 Players
-        </button>
-        <button onclick="selectPlayers(4)" style="font-size: 14pt">
-            Play With 4 Players
-        </button>
-    </div>
-</div>
-
-<script>
-    function selectPlayers(numPlayers) {
-        console.log(numPlayers + " players selected.");
-    }
-    </script>
-  </body>
-  </html>
-  
-  <!-- game.html -->
-  <html lang="en">
-      <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Word Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        box-sizing: border-box;
-    }
-    
-    .grid {
+      }
+      .grid {
         border: 1px solid black;
         padding: 2px;
         margin: 0 auto;
@@ -477,18 +48,6 @@
       {
           background-color: aqua;
       }
-
-      .container {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px;
-      }
-      .box {
-        flex: 1;
-        border: 1px solid #ccc;
-        padding: 20px;
-        margin-right: 20px;
-      }
       .chat-box {
         height: 300px;
         overflow-y: auto;
@@ -496,317 +55,558 @@
     </style>
   </head>
 
+
   <body>
-    <div style="text-align: center">
-      <h1>The Word Search Game</h1>
-      <hr />
+    <!-- login.html -->
+    <div id="login-page">
+      <div style="text-align: center">
+        <h1>The Word Search Game</h1>
+        <hr/>
+      </div>
+      
+      <form id="usernameForm" style="text-align: center; padding: 10px">
+        <label for="usernameInput" style="font-size: 16pt">
+          Enter a username to start:
+        </label>
+        <input
+          type="text"
+          id="usernameInput"
+          placeholder="Enter your username"
+          required
+          style="font-size: 16pt"
+        />
+        <button
+          type="button"
+          onclick="submitUsername(event)"
+          style="font-size: 16pt"
+        >
+          Join
+        </button>
+      </form>
+
+      <script>
+        var GameId = -1;
+        class UserEvent {
+          Button = -1;
+          PlayerIdx = 0;
+          GameId = 0;
+          Command = "User"; // User is default, "Grid" to get the grid
+        }
+        var connection = null;
+        var serverUrl = "ws://" + window.location.hostname + ":9127";
+        var startPoint;
+        var endPoint;
+        let isMouseDown = false;
+        let startCell = null;
+        let endCell = null;
+        const numRows = 50;
+        const numCols = 50;
+
+        function selectedCellsToConsole() {
+          const selectedCells = document.querySelectorAll(".selected");
+          let selectedLetters = "";
+          selectedCells.forEach((cell) => {
+            selectedLetters += cell.textContent.trim();
+          });
+          var highlightedLetters = {
+              type: "word-selection",
+              text: selectedLetters,
+              username: document.getElementById("usernameInput").value,
+              coordinates: [startPoint, endPoint]
+            }; 
+          connection.send(JSON.stringify(highlightedLetters)); // Send the username to the server
+          console.log(JSON.stringify(highlightedLetters));
+          
+        }
+
+        function getRowCol(index) {
+            const row = Math.floor(index / numCols);
+            const col = index % numCols;
+            return [row, col];
+        }
+
+        function getIdx(rowCol) {
+          return (rowCol[0] * numCols) + rowCol[1];
+        }
+
+        function getDist(coord1, coord2) {
+          return Math.sqrt(
+            Math.pow(coord2[0] - coord1[0], 2) +
+              Math.pow(coord2[1] - coord1[1], 2)
+          );
+        }
+
+
+        function selectRange(start, end, addClass) {
+            const cells = document.querySelectorAll(".cell");
+
+            let startRowCol = getRowCol(start);
+            let endRowCol = getRowCol(end);
+            startPoint = startRowCol;
+            endPoint = endRowCol;
+            let deltaX = endRowCol[0] - startRowCol[0];
+            let deltaY = endRowCol[1] - startRowCol[1];
+            let m = 0;
+            if (deltaX == 0) {
+              m = "undef";
+            } else {
+              m = deltaY / deltaX;
+
+              if (m != 0 && m != 1 && m != -1) {
+                m = Math.floor(m);
+
+                if (m < -1 || m > 1) {
+                  m = "undef";
+                }
+              }
+            }
+            let dist = getDist(startRowCol, endRowCol);
+
+            cells.forEach((cell, index) => {
+              let currRowCol = getRowCol(index);
+
+              let currDeltaX = currRowCol[0] - startRowCol[0];
+              let currDeltaY = currRowCol[1] - startRowCol[1];
+              let currM = 0;
+              if (currDeltaX == 0) {
+                currM = "undef";
+              } else {
+                currM = currDeltaY / currDeltaX;
+              }
+
+              let currDist = getDist(startRowCol, currRowCol);
+
+              if (addClass == "selected") {
+                if (index == start) {
+                  cell.classList.add("selected");
+                } else if (currDist <= dist && currM == m) {
+                  if (
+                    Math.sign(currDeltaX) == Math.sign(deltaX) &&
+                    Math.sign(currDeltaY) == Math.sign(deltaY)
+                  ) {
+                    cell.classList.add("selected");
+                  }
+                }
+                else {
+                  cell.classList.remove("selected");
+                }
+              } else if (addClass == "used") {
+                if (index == start) {
+                  cell.classList.add("used");
+                } else if (currDist <= dist && currM == m) {
+                  if (
+                    Math.sign(currDeltaX) == Math.sign(deltaX) &&
+                    Math.sign(currDeltaY) == Math.sign(deltaY)
+                  ) {
+                    cell.classList.add("used");
+                    console.log("Cell at index " + currRowCol + " changed color.");
+                  }
+                }
+              }
+              
+            });
+          }
+
+        function selectCells() {
+            const cells = document.querySelectorAll(".cell");
+            cells.forEach((cell, index) => {
+              cell.addEventListener("mousedown", function () {
+                isMouseDown = true;
+                startCell = index;
+                cell.classList.add("selected");
+              });
+
+              cell.addEventListener("mouseover", function () {
+                if (isMouseDown) {
+                  endCell = index;
+                  selectRange(startCell, endCell, "selected");
+                }
+              });
+            });
+
+            document.addEventListener("mouseup", function () {
+              let hasSelected = false;
+              cells.forEach((cell) => {
+                if (cell.classList.contains("selected")) {
+                  hasSelected = true;
+                }
+              });
+
+              if (hasSelected) {
+                selectedCellsToConsole(); // testing letter selection in console
+
+                isMouseDown = false;
+                cells.forEach((cell, index) => {
+                  cell.classList.remove("selected");
+                });
+              }
+            });
+          }
+
+        // var serverUrl = "ws://" + window.location.hostname + ":9180" + (parseInt(location.port) + 100);
+        connection = new WebSocket(serverUrl);
+
+        connection.onopen = function (evt) {
+          console.log("Connection opened.");
+        };
+
+        connection.onclose = function (evt) {
+            console.log("Connection closed.");
+          };
+        var usernameList = [];
+        function submitUsername(event) {
+          if (event) {
+            event.preventDefault();
+          }
+
+          var username = document.getElementById("usernameInput").value;
+          if (username.trim() !== "") {
+              // Check if the username is already taken
+              var usernames = document.querySelectorAll("#waiting-players-list li");
+              for (var i = 0; i < usernames.length; i++) {
+                if (usernames[i].textContent === username) {
+                  alert("Username is already taken. Please choose a different one.");
+                  return;
+                }
+              }
+            //put the send from tic tac toe here
+            var waitingPlayersList = document.getElementById("waiting-players-list");
+            var newPlayerItem = document.createElement("li");
+            newPlayerItem.textContent = username;
+            waitingPlayersList.appendChild(newPlayerItem);
+            U = new UserEvent();
+            U.username = username;
+            
+            connection.send(JSON.stringify(U)); // Send the username to the server
+            console.log(JSON.stringify(U));
+            usernameList.push(username);
+          } else {
+            alert("Please enter a valid username.");
+          }
+
+          document.getElementById("login-page").style.display = "none";
+          document.getElementById("lobby-page").style.display = "block"; // Show lobby
+        }
+
+        document
+          .getElementById("usernameForm")
+          .addEventListener("submit", submitUsername)
+
+
+        // Listen for messages from the server
+        connection.onmessage = function (event) {
+            var message = JSON.parse(event.data);
+
+            if (message.type === "wordCoordinates"){
+                console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
+                console.log("Start idx: " + getIdx(message.coordinates[0]) + " End idx: " + getIdx(message.coordinates[1]));
+                selectRange(getIdx(message.coordinates[0]), getIdx(message.coordinates[1]), "used");
+            }
+
+            console.log("Message received: " + event.data);
+            if ("PlayerUserNames" in message) {
+                var playerUserNames = message["PlayerUserNames"];
+                
+                for (var i = 0; i < playerUserNames.length; i++) {
+                    addPlayerToList(playerUserNames[i]);
+                }
+            }
+
+            if (message.type === "chat") {
+              addChatMessage(message.text, message.username);
+            } else if (message.type === "new_player") {
+              var playerName = message.username;
+              addPlayerToList(playerName);
+            }
+
+            if ("ver" in message) {
+              document.title = "TWSG " + message.ver;
+            }
+
+            if (document.getElementById('grid').childNodes.length <= 0) {
+              if(message.wordGrid != null && message.wordGrid.Grid.length > 0) {
+                var size = message.wordGrid.Grid.length;
+                const grid = document.getElementById('grid');
+
+                // create cells in the format <div class="cell">A</div>
+                grid.innerHTML = "";
+                for(var row=0; row<size; row++)
+                {
+                  for(var col=0; col<size; col++)
+                  {
+                    var temp = message.wordGrid.Grid[row][col];
+                    const cell = document.createElement('div')
+                    cell.classList.add('cell')
+                    cell.textContent = temp;
+                    // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
+                    grid.appendChild(cell);
+                  }
+                }
+                selectCells();
+              }
+            }
+        };
+
+      function addPlayerToList(playerName){
+            //TODO: need to recieve it from the server and then show it on the screen for all players
+          if (!(usernameList.includes(playerName))) {
+              var waitingPlayersList = document.getElementById(
+          "waiting-players-list");
+              var newPlayerItem = document.createElement("li");
+              newPlayerItem.textContent = playerName;
+              waitingPlayersList.appendChild(newPlayerItem);
+              usernameList.push(playerName);
+          }
+        }
+
+        function gridStart(){
+
+        }
+      </script>
+    </div>
+
+    <!-- lobby.html -->
+    <div id="lobby-page" style="display: none;">
+        <div style="text-align: center">
+          <h1>The Word Search Game</h1>
+          <hr />
+          <h2 style="margin-bottom: 0px">Lobby</h2>
+      </div>
+      
+      <div class="container">
+        <!-- Generate waiting players div in this style: -->
+        <div id="waiting-players" class="box waiting-players-box">
+            <h2 style="margin-bottom: 0px">Players Waiting</h2>
+          <hr style="margin-bottom: 20px" />
+          <ol id="waiting-players-list"></ol>
+      </div>
+      
+      <!-- End example div -->
+      <div class="box leaderboard-box">
+          <h2 style="margin-bottom: 0px">Leaderboard</h2>
+          <hr style="margin-bottom: 20px" />
+          <div class="container">
+              <!-- Generate rank div in this style: -->
+              <div id="rank">
+                  <h3 style="margin-top: 0px">Rank</h3>
+              <ol style="list-style: none; padding: 0px">
+                  <li>1</li>
+                  <li>2</li>
+                  <li>3</li>
+              </ol>
+            </div>
+            <!-- End example div -->
+            
+            <div style="padding-top: 0px; border-right: 1px solid black"></div>
+            
+            <!-- Generate nickname div in this style: -->
+            <div id="nickname">
+                <h3 style="margin-top: 0px">Nickname</h3>
+                <ol style="list-style: none; padding: 0px">
+                <li>Player 4</li>
+                <li>Player 5</li>
+                <li>Player 6</li>
+              </ol>
+          </div>
+          <!-- End example div -->
+          
+          <div style="padding-top: 0px; border-right: 1px solid black"></div>
+          
+          <!-- Generate score div in this style: -->
+          <div id="score">
+              <h3 style="margin-top: 0px">Score</h3>
+              <ol style="list-style: none; padding: 0px">
+                <li>1500</li>
+                <li>1100</li>
+                <li>990</li>
+              </ol>
+          </div>
+          <!-- End example div -->
+        </div>
+      </div>
     </div>
 
     <div class="container">
-      <div id="grid" class="grid">
-        <!-- 50x50 grid with one letter each -->
-        <script>
-          // const grid = document.getElementById('grid')
-
-          // // create cells in the format <div class="cell">A</div>
-          // // generating random letters
-          // const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-          // const charactersLength = characters.length;
-          // for (let i = 0; i < 50; i++)
-          // {
-          //     for (let j = 0; j < 50; j++)
-          //     {
-          //         const cell = document.createElement('div')
-          //         cell.classList.add('cell')
-          //         cell.textContent = characters.charAt(Math.floor(Math.random() * charactersLength)); // random letters
-          //         // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
-          //         grid.appendChild(cell);
-          //     }
-          // }
-      </script>
-        <!-- End of example script -->
-      </div>
-
-      <div style="padding-left: 20px">
-        <div class="box scoreboard-box" style="padding: 10px">
-          <h2
-            style="
-              margin: 0px;
-              margin-left: 10px;
-              margin-right: 10px;
-              text-align: center;
-            "
-          >
-            Scoreboard
-          </h2>
-
-          <div id="scoreboard">
-            <!-- Repeat for other players in session -->
-            <div>
-              <hr style="margin-bottom: 20px" />
-              <div
-                class="container"
-                style="padding: 5px; background-color: aqua"
-              >
-                <h3 style="margin: 0px">Player 1</h3>
-                <h3 style="margin: 0px">1500</h3>
-              </div>
-
-              <ol style="margin: 5px">
-                <li>Word1</li>
-                <li>Word2</li>
-                <li>Word3</li>
-              </ol>
-            </div>
-
-            <div>
-              <hr style="margin-bottom: 20px" />
-              <div
-                class="container"
-                style="padding: 5px; background-color: fuchsia"
-              >
-                <h3 style="margin: 0px">Player 2</h3>
-                <h3 style="margin: 0px">1100</h3>
-              </div>
-
-              <ol style="margin: 5px">
-                <li>Word4</li>
-                <li>Word5</li>
-                <li>Word6</li>
-              </ol>
-            </div>
-
-            <div>
-              <hr style="margin-bottom: 20px" />
-              <div
-                class="container"
-                style="padding: 5px; background-color: chartreuse"
-              >
-                <h3 style="margin: 0px">Player 3</h3>
-                <h3 style="margin: 0px">900</h3>
-              </div>
-
-              <ol style="margin: 5px">
-                <li>Word7</li>
-                <li>Word8</li>
-                <li>Word9</li>
-              </ol>
-            </div>
-
-            <div>
-              <hr style="margin-bottom: 20px" />
-              <div
-                class="container"
-                style="padding: 5px; background-color: red"
-              >
-                <h3 style="margin: 0px">Player 4</h3>
-                <h3 style="margin: 0px">800</h3>
-              </div>
-
-              <ol style="margin: 5px">
-                <li>Word10</li>
-                <li>Word11</li>
-                <li>Word12</li>
-              </ol>
-            </div>
-            <!-- End example scoreboard entry -->
-          </div>
-        </div>
-
-        <div style="padding: 10px"></div>
-
-        <div class="box chat-box" style="padding: 10px">
-          <h2 style="margin: 0px; text-align: center">Chat</h2>
-          <hr style="margin-bottom: 20px" />
-          <div id="chat-messages" style="overflow-y: auto">
-            <!-- Chat messages will go here -->
-            <!-- <div><strong>Player 1:</strong> Hi everyone!</div>
-            <div><strong>Player 2:</strong> Hello!</div> -->
-            <!-- Example chat messages -->
-          </div>
-        </div>
-
-        <div class="container" style="padding: 0px; padding-top: 10px">
-          <input
-            id="chat-box"
-            placeholder="Start a message..."
-            style="font-size: 14pt; height: 20px; width: 100%"
-          />
-          <button
-            id="chat-button"
-            onclick="sendMessage(event)"
-            style="font-size: 14pt; margin-left: 10px; margin-right: 20px"
-          >
-            Send
+      <div class="box player-buttons" style="text-align: center">
+          <button onclick="selectPlayers(2)" style="font-size: 14pt">
+              Play With 2 Players
           </button>
-        </div>
+          <button onclick="selectPlayers(3)" style="font-size: 14pt">
+              Play With 3 Players
+          </button>
+          <button onclick="selectPlayers(4)" style="font-size: 14pt">
+              Play With 4 Players
+          </button>
       </div>
     </div>
 
     <script>
-      function sendMessage(event) {
-        if (event) {
-          event.preventDefault();
-        }
-        var chatBox = document.getElementById("chat-box");
-        var message = chatBox.value;
-        var usernameInput = document.getElementById("usernameInput");
-        var username = usernameInput.value.trim();
-        if (message.trim() !== "") {
-          var userMessage = {
-            type: "chat-messages",
-            text: message,
-            username: username,
-          }; // Add your username logic as needed
-          connection.send(JSON.stringify(userMessage)); // Send the chat message as JSON
-          console.log(JSON.stringify(userMessage));
-          chatBox.value = ""; // Clear the input field
-        } else {
-          alert("Please enter a valid message.");
-        }
+      function selectPlayers(numPlayers) {
+          console.log(numPlayers + " players selected.");
+          document.getElementById("lobby-page").style.display = "none";
+          document.getElementById("game-page").style.display = "block"; // Show game
       }
-
-      
-      function addChatMessage(message, username) {
-        var chatMessages = document.getElementById("chat-messages");
-        var newMessage = document.createElement("div");
-        newMessage.innerHTML = "<strong>" + username + ":</strong> " + message;
-        chatMessages.appendChild(newMessage);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
-      }
-
-      // highlighting will not work if errors are thrown
-      document.addEventListener("DOMContentLoaded", function () {
-        // let isMouseDown = false;
-        // let startCell = null;
-        // let endCell = null;
-
-        // Grid dimensions
-        // const numRows = 50;
-        // const numCols = 50;
-
-        // function selectCells() {
-        //   const cells = document.querySelectorAll(".cell");
-        //   cells.forEach((cell, index) => {
-        //     cell.addEventListener("mousedown", function () {
-        //       if (!cell.classList.contains("used")) {
-        //         isMouseDown = true;
-        //         startCell = index;
-        //         cell.classList.add("selected");
-        //       }
-        //     });
-
-        //     cell.addEventListener("mouseover", function () {
-        //       if (isMouseDown && !cell.classList.contains("used")) {
-        //         endCell = index;
-        //         selectRange(startCell, endCell);
-        //       }
-        //     });
-        //   });
-
-        //   document.addEventListener("mouseup", function () {
-        //     let hasSelected = false;
-        //     cells.forEach((cell) => {
-        //       if (cell.classList.contains("selected")) {
-        //         hasSelected = true;
-        //       }
-        //     });
-
-        //     if (hasSelected) {
-        //       // Submit/check logic can be implemented here
-        //       selectedCellsToConsole(); // testing letter selection in console
-
-        //       isMouseDown = false;
-        //       startCell = null;
-        //       endCell = null;
-        //       cells.forEach((cell, index) => {
-        //         cell.classList.remove("selected");
-        //       });
-        //     }
-        //   });
-        // }
-
-        // function selectRange(start, end) {
-        //   const cells = document.querySelectorAll(".cell");
-
-        //   let startRowCol = getRowCol(start);
-        //   let endRowCol = getRowCol(end);
-
-        //   let deltaX = endRowCol[0] - startRowCol[0];
-        //   let deltaY = endRowCol[1] - startRowCol[1];
-        //   let m = 0;
-        //   if (deltaX == 0) {
-        //     m = "undef";
-        //   } else {
-        //     m = deltaY / deltaX;
-
-        //     if (m != 0 && m != 1 && m != -1) {
-        //       m = Math.floor(m);
-
-        //       if (m < -1 || m > 1) {
-        //         m = "undef";
-        //       }
-        //     }
-        //   }
-        //   let dist = getDist(startRowCol, endRowCol);
-
-        //   cells.forEach((cell, index) => {
-        //     let currRowCol = getRowCol(index);
-
-        //     let currDeltaX = currRowCol[0] - startRowCol[0];
-        //     let currDeltaY = currRowCol[1] - startRowCol[1];
-        //     let currM = 0;
-        //     if (currDeltaX == 0) {
-        //       currM = "undef";
-        //     } else {
-        //       currM = currDeltaY / currDeltaX;
-        //     }
-
-        //     let currDist = getDist(startRowCol, currRowCol);
-
-        //     if (!cell.classList.contains("used")) {
-        //       if (index == start) {
-        //         cell.classList.add("selected");
-        //       } else if (currDist <= dist && currM == m) {
-        //         if (
-        //           Math.sign(currDeltaX) == Math.sign(deltaX) &&
-        //           Math.sign(currDeltaY) == Math.sign(deltaY)
-        //         ) {
-        //           cell.classList.add("selected");
-        //         }
-        //       } else {
-        //         cell.classList.remove("selected");
-        //       }
-        //     }
-        //   });
-        // }
-
-        // function selectedCellsToConsole() {
-        //   const selectedCells = document.querySelectorAll(".selected");
-        //   let selectedLetters = "";
-
-        //   selectedCells.forEach((cell) => {
-        //     selectedLetters += cell.textContent.trim();
-        //   });
-
-        //   console.log(selectedLetters);
-        // }
-
-        // function getRowCol(index) {
-        //   const row = Math.floor(index / numCols);
-        //   const col = index % numCols;
-        //   return [row, col];
-        // }
-
-        // function getDist(coord1, coord2) {
-        //   return Math.sqrt(
-        //     Math.pow(coord2[0] - coord1[0], 2) +
-        //       Math.pow(coord2[1] - coord1[1], 2)
-        //   );
-        // }
-
-        //selectCells();
-      });
     </script>
+  </div>
+    
+    <!-- game.html -->
+    <div id="game-page" style="display: none;">
+      <div style="text-align: center">
+        <h1>The Word Search Game</h1>
+        <hr />
+      </div>
+
+      <div class="container">
+        <div id="grid" class="grid"></div>
+
+        <div style="padding-left: 20px">
+          <div class="box scoreboard-box" style="padding: 10px">
+            <h2
+              style="
+                margin: 0px;
+                margin-left: 10px;
+                margin-right: 10px;
+                text-align: center;
+              "
+            >
+              Scoreboard
+            </h2>
+
+            <div id="scoreboard">
+              <!-- Repeat for other players in session -->
+              <div>
+                <hr style="margin-bottom: 20px" />
+                <div
+                  class="container"
+                  style="padding: 5px; background-color: aqua"
+                >
+                  <h3 style="margin: 0px">Player 1</h3>
+                  <h3 style="margin: 0px">1500</h3>
+                </div>
+
+                <ol style="margin: 5px">
+                  <li>Word1</li>
+                  <li>Word2</li>
+                  <li>Word3</li>
+                </ol>
+              </div>
+
+              <div>
+                <hr style="margin-bottom: 20px" />
+                <div
+                  class="container"
+                  style="padding: 5px; background-color: fuchsia"
+                >
+                  <h3 style="margin: 0px">Player 2</h3>
+                  <h3 style="margin: 0px">1100</h3>
+                </div>
+
+                <ol style="margin: 5px">
+                  <li>Word4</li>
+                  <li>Word5</li>
+                  <li>Word6</li>
+                </ol>
+              </div>
+
+              <div>
+                <hr style="margin-bottom: 20px" />
+                <div
+                  class="container"
+                  style="padding: 5px; background-color: chartreuse"
+                >
+                  <h3 style="margin: 0px">Player 3</h3>
+                  <h3 style="margin: 0px">900</h3>
+                </div>
+
+                <ol style="margin: 5px">
+                  <li>Word7</li>
+                  <li>Word8</li>
+                  <li>Word9</li>
+                </ol>
+              </div>
+
+              <div>
+                <hr style="margin-bottom: 20px" />
+                <div
+                  class="container"
+                  style="padding: 5px; background-color: red"
+                >
+                  <h3 style="margin: 0px">Player 4</h3>
+                  <h3 style="margin: 0px">800</h3>
+                </div>
+
+                <ol style="margin: 5px">
+                  <li>Word10</li>
+                  <li>Word11</li>
+                  <li>Word12</li>
+                </ol>
+              </div>
+              <!-- End example scoreboard entry -->
+            </div>
+          </div>
+
+          <div style="padding: 10px"></div>
+
+          <div class="box chat-box" style="padding: 10px">
+            <h2 style="margin: 0px; text-align: center">Chat</h2>
+            <hr style="margin-bottom: 20px" />
+            <div id="chat-messages" style="overflow-y: auto">
+              <!-- Chat messages will go here -->
+              <!-- <div><strong>Player 1:</strong> Hi everyone!</div>
+              <div><strong>Player 2:</strong> Hello!</div> -->
+              <!-- Example chat messages -->
+            </div>
+          </div>
+
+          <div class="container" style="padding: 0px; padding-top: 10px">
+            <input
+              id="chat-box"
+              placeholder="Start a message..."
+              style="font-size: 14pt; height: 20px; width: 100%"
+            />
+            <button
+              id="chat-button"
+              onclick="sendMessage(event)"
+              style="font-size: 14pt; margin-left: 10px; margin-right: 20px"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        function sendMessage(event) {
+          if (event) {
+            event.preventDefault();
+          }
+          var chatBox = document.getElementById("chat-box");
+          var message = chatBox.value;
+          var usernameInput = document.getElementById("usernameInput");
+          var username = usernameInput.value.trim();
+          if (message.trim() !== "") {
+            var userMessage = {
+              type: "chat-messages",
+              text: message,
+              username: username,
+            }; // Add your username logic as needed
+            connection.send(JSON.stringify(userMessage)); // Send the chat message as JSON
+            console.log(JSON.stringify(userMessage));
+            chatBox.value = ""; // Clear the input field
+          } else {
+            alert("Please enter a valid message.");
+          }
+        }
+
+        
+        function addChatMessage(message, username) {
+          var chatMessages = document.getElementById("chat-messages");
+          var newMessage = document.createElement("div");
+          newMessage.innerHTML = "<strong>" + username + ":</strong> " + message;
+          chatMessages.appendChild(newMessage);
+          chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
+        }
+      </script>
+    </div>
   </body>
 </html>
