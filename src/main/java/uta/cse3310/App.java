@@ -125,7 +125,7 @@ public class App extends WebSocketServer {
       int gridSize = 50;
       int numWords = (int) (gridSize * .8);
       System.out.println(numWords);
-      int[][] coordinatesList = new int[2][(int) numWords];
+      int[][] coordinatesList = new int[4][(int) numWords];
       char[][] shownGrid = new char[gridSize][gridSize];
       
       G.wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
