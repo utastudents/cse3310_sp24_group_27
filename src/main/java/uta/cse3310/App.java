@@ -67,7 +67,7 @@ public class App extends WebSocketServer {
   // the vector ActiveGames
   private Vector<Game> ActiveGames = new Vector<Game>();
 
-  private int GameId = 1;
+  private int GameId = 0;
 
   private int connectionId = 0;
 
@@ -100,7 +100,9 @@ public class App extends WebSocketServer {
 
     // search for a game needing a player
     Game G = null;
+    System.err.println("ActiveGames size: " + ActiveGames.size());
     for (Game i : ActiveGames) {
+      System.err.println("for loop for active games fired.");
       if (i.Players == uta.cse3310.PlayerType.PLAYERONE ||
           i.Players == uta.cse3310.PlayerType.PLAYERTWO ||
           i.Players == uta.cse3310.PlayerType.PLAYERTHREE) {
@@ -111,12 +113,13 @@ public class App extends WebSocketServer {
 
     // No matches ? Create a new Game.
      // No matches ? Create a new Game.
-    if (G == null) {
+    if (G == null || GameId % 2 == 1) {
       G = new Game(stats);
       G.GameId = GameId;
       GameId++;
       // Add the first player
-      G.Players = PlayerType.PLAYERONE;
+      G.Players = uta.cse3310.PlayerType.PLAYERONE;
+      // G.Players = PlayerType.PLAYERONE;
       ActiveGames.add(G);
       System.out.println("creating a new Game");
 

@@ -297,6 +297,17 @@
         connection.onmessage = function (event) {
             var message = JSON.parse(event.data);
 
+            if ('YouAre' in message) {
+              if (message.YouAre == "PLAYERONE") {
+                  PlayerIdx = 0;
+              }
+              else {
+                  PlayerIdx = 1;
+              }
+
+              gameid = message.GameId;
+            }
+
             if (message.type === "wordCoordinates"){
                 console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
                 console.log("Start idx: " + getIdx(message.coordinates[0]) + " End idx: " + getIdx(message.coordinates[1]));
@@ -359,9 +370,6 @@
           }
         }
 
-        function gridStart(){
-
-        }
       </script>
     </div>
 
