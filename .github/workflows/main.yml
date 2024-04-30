@@ -22,7 +22,7 @@ jobs:
           echo "Service name = ${{ vars.service_name }}"
           echo "http port = ${{ vars.http_port }}"
           echo "websocket port = ${{ vars.websocket_port }}"
-          echo "version = $${ github.sha }}"
+          echo "version = ${{ github.sha }}"
           # On to the work at hand.
           mkdir -p ~/.ssh/
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/production.key
@@ -54,7 +54,7 @@ jobs:
            ssh production 'echo "[Service]" >> .config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Type=simple" >> .config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Restart=always" >> .config/systemd/user/${{ vars.service_name }}.service'
-           ssh production 'echo "RestartSec=5" >> .config/systemd/user/${{ vars.service_name }}.service'
+           ssh production 'echo "RestartSec=216000" >> .config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Environment=VERSION=\"${{ github.sha }}\"" >>.config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Environment=WEBSOCKET_PORT=${{ vars.websocket_port }}" >>.config/systemd/user/${{ vars.service_name }}.service'
            ssh production 'echo "Environment=HTTP_PORT=${{ vars.http_port }}" >>.config/systemd/user/${{ vars.service_name }}.service'

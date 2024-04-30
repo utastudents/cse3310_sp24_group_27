@@ -27,10 +27,15 @@ public class WordGrid {
          }
       }
 
+      String tempword = "agreement";
+      for(int i = 20, index = 0; i < (20+tempword.length()); i++, index++){
+         shownGrid[0][i] = (char) tempword.charAt(index);
+      }
 
       // while you're not done filling in all the words yet
       for(int wordsNum = 0; wordsNum < numWords; wordsNum++) {
          
+
          boolean placed = false, done = false, entireWord = false;
          String word = getWord("words.txt");
          int   randX = rand.nextInt(gridSize-1), 
@@ -202,7 +207,7 @@ public class WordGrid {
          
       }
 
-      randomizeSpaces(gridSize, shownGrid);
+      // randomizeSpaces(gridSize, shownGrid);
 
    }
 
