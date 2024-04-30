@@ -28,10 +28,20 @@ public class WordGrid {
          }
       }
 
-      String tempword = "agreement";
+      String tempword;
+      int randw = rand.nextInt(2);
+      if(randw == 0) {tempword = "agreement";}
+      else if(randw == 1) {tempword = "banana";}
+      else {tempword = "parliament";}
       for(int i = 20, index = 0; i < (20+tempword.length()); i++, index++){
          shownGrid[0][i] = (char) tempword.charAt(index);
       }
+      coordinatesList[0][0] = 0;
+      coordinatesList[1][0] = 20;
+      coordinatesList[2][0] = 0;
+      coordinatesList[3][0] = 20+tempword.length();
+      words.add(tempword);
+
 
       // while you're not done filling in all the words yet
       for(int wordsNum = 0; wordsNum < numWords; wordsNum++) {
