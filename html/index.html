@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Word Seach Game</title>
+    <title>The Word Search Game</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -22,7 +22,7 @@
     </div>
     
     <div style="text-align: left">
-      <h1 style=" font-size: smaller">Git Hash: 66c990165b113c08f545d2be4d2e45c13e676b07</h1>
+      <h1 style=" font-size: smaller"></h1>
       <hr />
     </div>
 
@@ -95,7 +95,7 @@
         }
 
 
-      function selectRange(start, end) {
+      function selectRange(start, end, addClass) {
           const cells = document.querySelectorAll(".cell");
 
           let startRowCol = getRowCol(start);
@@ -134,20 +134,36 @@
 
             let currDist = getDist(startRowCol, currRowCol);
 
-            if (!cell.classList.contains("used")) {
+            if (addClass == "selected") {
+              if (!cell.classList.contains("used")) {
+                if (index == start) {
+                  cell.classList.add("selected");
+                } else if (currDist <= dist && currM == m) {
+                  if (
+                    Math.sign(currDeltaX) == Math.sign(deltaX) &&
+                    Math.sign(currDeltaY) == Math.sign(deltaY)
+                  ) {
+                    cell.classList.add("selected");
+                  }
+                }
+                else {
+                  cell.classList.remove("selected");
+                }
+              }
+            } else if (addClass == "used") {
               if (index == start) {
-                cell.classList.add("selected");
+                cell.classList.add("used");
               } else if (currDist <= dist && currM == m) {
                 if (
                   Math.sign(currDeltaX) == Math.sign(deltaX) &&
                   Math.sign(currDeltaY) == Math.sign(deltaY)
                 ) {
-                  cell.classList.add("selected");
+                  cell.classList.add("used");
+                  console.log("Cell at index " + currRowCol + " changed color.");
                 }
-              } else {
-                cell.classList.remove("selected");
               }
             }
+            
           });
         }
 
@@ -165,7 +181,7 @@
             cell.addEventListener("mouseover", function () {
               if (isMouseDown && !cell.classList.contains("used")) {
                 endCell = index;
-                selectRange(startCell, endCell);
+                selectRange(startCell, endCell, "selected");
               }
             });
           });
@@ -179,12 +195,9 @@
             });
 
             if (hasSelected) {
-              // Submit/check logic can be implemented here
               selectedCellsToConsole(); // testing letter selection in console
 
               isMouseDown = false;
-              startCell = null;
-              endCell = null;
               cells.forEach((cell, index) => {
                 cell.classList.remove("selected");
               });
@@ -242,20 +255,11 @@
       // Listen for messages from the server
       connection.onmessage = function (event) {
           var message = JSON.parse(event.data);
+
           if (message.type === "wordCoordinates"){
-              console.log(typeof message.coordinates[0] + " " + typeof message.coordinates[1]);
-              var start = getRowCol(message.coordinates[0]);
-              var end = getRowCol(message.coordinates[1]);
-              console.log(message.coordinates[0] + " " + message.coordinates[1]);
-              console.log("Start: " + start + " End: " + end);
-              var cells = document.querySelectorAll(".cell");
-              cells.forEach((cell, index) => {
-                if (index >= start && index <= end) {
-                  cell.classList.add("used");
-                  cell.style.backgroundColor = "red";
-                  console.log("Cell at index " + index + " changed color.");
-                }
-              });
+              console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
+              console.log("Start idx: " + startCell + " End idx: " + endCell);
+              selectRange(startCell, endCell, "used");
           }
           console.log("Message received: " + event.data);
             if ("PlayerUserNames" in message) {
@@ -265,6 +269,7 @@
                     addPlayerToList(playerUserNames[i]);
                 }
             }
+
             if (message.type === "chat") {
               addChatMessage(message.text, message.username);
             } else if (message.type === "new_player") {
@@ -272,11 +277,16 @@
               addPlayerToList(playerName);
             }
 
+            if ("ver" in message) {
+              document.title = "TWSG " + message.ver;
+            }
+
             if(message.wordGrid != null && message.wordGrid.Grid.length > 0) {
               var size = message.wordGrid.Grid.length;
-              const grid = document.getElementById('grid')
+              const grid = document.getElementById('grid');
 
               // create cells in the format <div class="cell">A</div>
+              grid.innerHTML = ""; // grid NEEDS to be cleared if appending children; have to save html format of grid to update properly
               for(var row=0; row<size; row++)
               {
                 for(var col=0; col<size; col++)
