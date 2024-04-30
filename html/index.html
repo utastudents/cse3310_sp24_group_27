@@ -298,15 +298,15 @@
             var message = JSON.parse(event.data);
 
             if ('YouAre' in message) {
-            if (message.YouAre == "PLAYERONE") {
-                idx = 0;
-            }
-            else {
-                idx = 1;
-            }
+              if (message.YouAre == "PLAYERONE") {
+                  PlayerIdx = 0;
+              }
+              else {
+                  PlayerIdx = 1;
+              }
 
-            gameid = message.GameId;
-        }
+              gameid = message.GameId;
+            }
 
             if (message.type === "wordCoordinates"){
                 console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
@@ -370,9 +370,6 @@
           }
         }
 
-        function gridStart(){
-
-        }
       </script>
     </div>
 
