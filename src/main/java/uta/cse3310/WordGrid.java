@@ -282,10 +282,13 @@ public class WordGrid {
    }
 
    public boolean checkWord(String word){
-      //
       boolean found = false;
+      String backwardsWord = "";
+      for(int i = 0; i < word.length(); i++){
+         backwardsWord = word.charAt(i) + backwardsWord;
+      }
       for(int i = 0; i < words.size(); i++){
-         if(words.get(i).equals(word)){
+         if(words.get(i).equals(word) || words.get(i).equals(backwardsWord)){
             words.remove(i);
             found = true;
          }
