@@ -51,7 +51,8 @@
       }
       var connection = null;
       var serverUrl = "ws://" + window.location.hostname + ":9127";
-
+      var startPoint;
+      var endPoint;
       let isMouseDown = false;
       let startCell = null;
       let endCell = null;
@@ -61,12 +62,18 @@
       function selectedCellsToConsole() {
         const selectedCells = document.querySelectorAll(".selected");
         let selectedLetters = "";
-
         selectedCells.forEach((cell) => {
           selectedLetters += cell.textContent.trim();
         });
-
-        console.log(selectedLetters);
+        var highlightedLetters = {
+            type: "word-selection",
+            text: selectedLetters,
+            username: document.getElementById("usernameInput").value,
+            coordinates: [startPoint, endPoint]
+          }; 
+        connection.send(JSON.stringify(highlightedLetters)); // Send the username to the server
+        console.log(JSON.stringify(highlightedLetters));
+        
       }
 
       function getRowCol(index) {
@@ -88,7 +95,8 @@
 
           let startRowCol = getRowCol(start);
           let endRowCol = getRowCol(end);
-
+          startPoint = startRowCol;
+          endPoint = endRowCol;
           let deltaX = endRowCol[0] - startRowCol[0];
           let deltaY = endRowCol[1] - startRowCol[1];
           let m = 0;
@@ -229,6 +237,22 @@
       // Listen for messages from the server
       connection.onmessage = function (event) {
           var message = JSON.parse(event.data);
+          if (message.type === "wordCoordinates"){
+              console.log(typeof message.coordinates[0] + " " + typeof message.coordinates[1]);
+              var start = getRowCol(message.coordinates[0]);
+              var end = getRowCol(message.coordinates[1]);
+              console.log(message.coordinates[0] + " " + message.coordinates[1]);
+              console.log("Start: " + start + " End: " + end);
+              var cells = document.querySelectorAll(".cell");
+              cells.forEach((cell, index) => {
+                if (index >= start && index <= end) {
+                  cell.classList.add("used");
+                  cell.style.backgroundColor = "red";
+                  console.log("Cell at index " + index + " changed color.");
+                }
+              });
+          }
+          console.log("Message received: " + event.data);
             if ("PlayerUserNames" in message) {
                 var playerUserNames = message["PlayerUserNames"];
                 

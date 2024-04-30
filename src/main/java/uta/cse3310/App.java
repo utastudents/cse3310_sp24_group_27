@@ -59,6 +59,7 @@ import java.time.Duration;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 public class App extends WebSocketServer {
 
@@ -197,12 +198,24 @@ public class App extends WebSocketServer {
       if ("chat-messages".equals(U.type)) {
         // Chat message
         // Send the message to everyone
-        System.err.println("a;sldkjf;alskdjf;laksdjf;lasdjkl;f");
         String chatMessageJson = gson.toJson(new UserEvent("chat", U.text, U.username));
         System.err.println("chat message: " + chatMessageJson);
         broadcast(chatMessageJson);
         System.err.println("chat message broadcasted");
         return;
+      }
+      if ("word-selection".equals(U.type)) {
+        // word selection
+        // Send the selection to everyone
+        boolean validWord = G.wordGrid.checkWord(U.text);
+        System.err.println("valid word: " + validWord);
+        if (validWord) {
+          String wordSelectionJson = gson.toJson(new UserEvent("wordCoordinates", U.coordinates, U.username));
+          System.err.println("word message: " + wordSelectionJson);
+          broadcast(wordSelectionJson);
+          System.err.println("word message broadcasted");
+          return;
+        }
       }
       String jsonString;
       jsonString = gson.toJson(G);

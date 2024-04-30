@@ -1,4 +1,5 @@
 package uta.cse3310;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -13,7 +14,7 @@ import java.io.File;
 public class WordGrid {
 
    public char[][] Grid;
-
+   public ArrayList<String> words = new ArrayList<String>();
    //the grid needs to be added to the grid object (public char[][] Grid) 
 
    // generate both grids (coordinatesList and shownGrid)
@@ -44,7 +45,7 @@ public class WordGrid {
                yVal = randY, 
                direction = rand.nextInt(4); //up, down, right, up-right, up-right
          int index = 0, sizeSoFar;
-
+         words.add(word);
          // while space for the word hasn't been placed
          while(!placed) {
             sizeSoFar = 1;
@@ -268,6 +269,17 @@ public class WordGrid {
       }
    }
 
+   public boolean checkWord(String word){
+      //
+      boolean found = false;
+      for(int i = 0; i < words.size(); i++){
+         if(words.get(i).equals(word)){
+            words.remove(i);
+            found = true;
+         }
+      }
+      return found;
+   }
 
    // // to test WordGrid
    // public static void main(String[] args) {
