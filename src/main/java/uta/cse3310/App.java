@@ -59,6 +59,7 @@ import java.time.Duration;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 public class App extends WebSocketServer {
 
@@ -73,6 +74,8 @@ public class App extends WebSocketServer {
   private Instant startTime;
 
   private Statistics stats;
+  
+  public static String ver;
 
   public App(int port) {
     super(new InetSocketAddress(port));
@@ -108,14 +111,14 @@ public class App extends WebSocketServer {
 
     // No matches ? Create a new Game.
      // No matches ? Create a new Game.
-     if (G == null) {
+    if (G == null) {
       G = new Game(stats);
       G.GameId = GameId;
       GameId++;
       // Add the first player
       G.Players = PlayerType.PLAYERONE;
       ActiveGames.add(G);
-      System.out.println(" creating a new Game");
+      System.out.println("creating a new Game");
 
       //putting in the generated word grid
       G.wordGrid = new WordGrid();
@@ -124,7 +127,7 @@ public class App extends WebSocketServer {
       int gridSize = 50;
       int numWords = (int) (gridSize * .8);
       System.out.println(numWords);
-      int[][] coordinatesList = new int[2][(int) numWords];
+      int[][] coordinatesList = new int[4][(int) numWords];
       char[][] shownGrid = new char[gridSize][gridSize];
       
       G.wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
@@ -132,12 +135,12 @@ public class App extends WebSocketServer {
       {
           for (var j = 0; j < 50; j++)
           {
-            G.wordGrid.Grid[i][j] = shownGrid[i][j];
+            G.wordGrid.Grid[j][i] = shownGrid[j][i];
           }
       }
     } else {
       // join an existing game
-      System.out.println(" not a new game");
+      System.out.println("not a new game");
       G.Players = PlayerType.values()[G.Players.ordinal() + 1];
       G.StartGame();
     }
@@ -164,10 +167,12 @@ public class App extends WebSocketServer {
 
     // The state of the game has changed, so lets send it to everyone
     jsonString = gson.toJson(G);
+    JsonObject jsonObject = new Gson().fromJson(jsonString, JsonObject.class);
+    jsonObject.addProperty("ver", ver);
+    jsonString = new Gson().toJson(jsonObject);
     System.out
         .println("< " + Duration.between(startTime, Instant.now()).toMillis() + " " + "*" + " " + escape(jsonString));
     broadcast(jsonString);
-
   }
 
   @Override
@@ -197,12 +202,24 @@ public class App extends WebSocketServer {
       if ("chat-messages".equals(U.type)) {
         // Chat message
         // Send the message to everyone
-        System.err.println("a;sldkjf;alskdjf;laksdjf;lasdjkl;f");
         String chatMessageJson = gson.toJson(new UserEvent("chat", U.text, U.username));
         System.err.println("chat message: " + chatMessageJson);
         broadcast(chatMessageJson);
         System.err.println("chat message broadcasted");
         return;
+      }
+      if ("word-selection".equals(U.type)) {
+        // word selection
+        // Send the selection to everyone
+        boolean validWord = G.wordGrid.checkWord(U.text);
+        System.err.println("valid word: " + validWord);
+        if (validWord) {
+          String wordSelectionJson = gson.toJson(new UserEvent("wordCoordinates", U.coordinates, U.username));
+          System.err.println("word message: " + wordSelectionJson);
+          broadcast(wordSelectionJson);
+          System.err.println("word message broadcasted");
+          return;
+        }
       }
       String jsonString;
       jsonString = gson.toJson(G);
@@ -252,7 +269,14 @@ public class App extends WebSocketServer {
   }
 
   public static void main(String[] args) {
-    
+    if (System.getenv("VERSION") == null) {
+      ver = "1.0.0";
+    } else {
+      ver = System.getenv("VERSION");
+    }
+
+    System.out.println("git hash: " + ver);
+
     // Set up the http server
     String HttpPortEnv = System.getenv("HTTP_PORT");
     int httpPort = 9027;

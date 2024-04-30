@@ -8,6 +8,7 @@ public class UserEvent {
     String type; // The chat message 
     String text;
     String username;
+    int[][] coordinates; // The coordinates of the word found
 
     // Constructor for chat messages
     public UserEvent(String _Type, String _Text, String _Username) {
@@ -23,6 +24,13 @@ public class UserEvent {
         Button = _Button;
         type = _Type;
         text = _Text;
+        username = _Username;
+       
+    }
+    //constructor for word selection
+    public UserEvent(String _Type, int[][] Coordinates, String _Username) {
+        type = _Type;
+        coordinates = Coordinates;
         username = _Username;
     }
 

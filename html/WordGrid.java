@@ -1,4 +1,5 @@
 // package uta.cse3310;
+// import java.util.ArrayList;
 // import java.util.List;
 // import java.util.Random;
 
@@ -9,11 +10,10 @@
 // import java.io.IOException;
 // import java.io.File;
 
-
 // public class WordGrid {
 
 //    public char[][] Grid;
-
+//    public ArrayList<String> words = new ArrayList<String>();
 //    //the grid needs to be added to the grid object (public char[][] Grid) 
 
 //    // generate both grids (coordinatesList and shownGrid)
@@ -27,10 +27,20 @@
 //          }
 //       }
 
-//       String tempword = "agreement";
+//       String tempword;
+//       int randw = rand.nextInt(2);
+//       if(randw == 0) {tempword = "agreement";}
+//       else if(randw == 1) {tempword = "banana";}
+//       else {tempword = "parliament";}
 //       for(int i = 20, index = 0; i < (20+tempword.length()); i++, index++){
 //          shownGrid[0][i] = (char) tempword.charAt(index);
 //       }
+//       coordinatesList[0][0] = 0;
+//       coordinatesList[1][0] = 20;
+//       coordinatesList[2][0] = 0;
+//       coordinatesList[3][0] = 20+tempword.length();
+//       words.add(tempword);
+
 
 //       // while you're not done filling in all the words yet
 //       for(int wordsNum = 0; wordsNum < numWords; wordsNum++) {
@@ -44,7 +54,7 @@
 //                yVal = randY, 
 //                direction = rand.nextInt(4); //up, down, right, up-right, up-right
 //          int index = 0, sizeSoFar;
-
+//          words.add(word);
 //          // while space for the word hasn't been placed
 //          while(!placed) {
 //             sizeSoFar = 1;
@@ -152,6 +162,8 @@
 //                placed = true;
 //                coordinatesList[0][wordsNum] = randY;
 //                coordinatesList[1][wordsNum] = randX;
+//                coordinatesList[2][wordsNum] = yVal;
+//                coordinatesList[3][wordsNum] = xVal;
 //             }
 //             else {
 //                randX = rand.nextInt(gridSize-1);
@@ -254,7 +266,7 @@
 
 //    public void printCoordinatesList(int[][] coordinatesList) {
 //       for(int set = 0; set < coordinatesList[0].length; set++) {
-//          System.out.println(coordinatesList[0][set] + " " + coordinatesList[1][set]);
+//          System.out.println(coordinatesList[0][set] + " " + coordinatesList[1][set] + " " + coordinatesList[2][set] + " " + coordinatesList[3][set]);
 //       }
 //    }
 
@@ -268,8 +280,22 @@
 //       }
 //    }
 
+//    public boolean checkWord(String word){
+//       boolean found = false;
+//       String backwardsWord = "";
+//       for(int i = 0; i < word.length(); i++){
+//          backwardsWord = word.charAt(i) + backwardsWord;
+//       }
+//       for(int i = 0; i < words.size(); i++){
+//          if(words.get(i).equals(word) || words.get(i).equals(backwardsWord)){
+//             words.remove(i);
+//             found = true;
+//          }
+//       }
+//       return found;
+//    }
 
-//    // // to test WordGrid
+//    // to test WordGrid
 //    // public static void main(String[] args) {
 //    //    WordGrid wordGrid = new WordGrid();
       
@@ -278,7 +304,7 @@
 //    //    int gridSize = 35;
 //    //    int numWords = (int) (gridSize * .8);
 //    //    System.out.println(numWords);
-//    //    int[][] coordinatesList = new int[2][(int) numWords];
+//    //    int[][] coordinatesList = new int[4][(int) numWords];
 //    //    char[][] shownGrid = new char[gridSize][gridSize];
       
 //    //    wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
