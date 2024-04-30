@@ -271,7 +271,7 @@ public class App extends WebSocketServer {
 
   public static void main(String[] args) {
     if (System.getenv("VERSION") == null) {
-      ver = "1.0.0";
+      ver = "1.0";
     } else {
       ver = System.getenv("VERSION");
     }
