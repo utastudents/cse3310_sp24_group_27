@@ -133,7 +133,7 @@ public class App extends WebSocketServer {
       {
           for (var j = 0; j < 50; j++)
           {
-            G.wordGrid.Grid[i][j] = shownGrid[i][j];
+            G.wordGrid.Grid[j][i] = shownGrid[j][i];
           }
       }
     } else {
