@@ -152,6 +152,8 @@ public class WordGrid {
                placed = true;
                coordinatesList[0][wordsNum] = randY;
                coordinatesList[1][wordsNum] = randX;
+               coordinatesList[2][wordsNum] = yVal;
+               coordinatesList[3][wordsNum] = xVal;
             }
             else {
                randX = rand.nextInt(gridSize-1);
@@ -254,7 +256,7 @@ public class WordGrid {
 
    public void printCoordinatesList(int[][] coordinatesList) {
       for(int set = 0; set < coordinatesList[0].length; set++) {
-         System.out.println(coordinatesList[0][set] + " " + coordinatesList[1][set]);
+         System.out.println(coordinatesList[0][set] + " " + coordinatesList[1][set] + " " + coordinatesList[2][set] + " " + coordinatesList[3][set]);
       }
    }
 
@@ -269,7 +271,7 @@ public class WordGrid {
    }
 
 
-   // // to test WordGrid
+   // to test WordGrid
    // public static void main(String[] args) {
    //    WordGrid wordGrid = new WordGrid();
       
@@ -278,7 +280,7 @@ public class WordGrid {
    //    int gridSize = 35;
    //    int numWords = (int) (gridSize * .8);
    //    System.out.println(numWords);
-   //    int[][] coordinatesList = new int[2][(int) numWords];
+   //    int[][] coordinatesList = new int[4][(int) numWords];
    //    char[][] shownGrid = new char[gridSize][gridSize];
       
    //    wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
