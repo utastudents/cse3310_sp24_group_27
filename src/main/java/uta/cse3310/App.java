@@ -54,6 +54,8 @@ import org.java_websocket.server.WebSocketServer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.Map;
+import java.util.TreeMap;
 import java.time.Instant;
 import java.time.Duration;
 
@@ -67,9 +69,13 @@ public class App extends WebSocketServer {
   // the vector ActiveGames
   private Vector<Game> ActiveGames = new Vector<Game>();
 
+  private Map<String, Integer> UsernameScore = new TreeMap<>();
+
+  private Vector<String> WaitingPlayers = new Vector<String>();
+
   private int GameId = 0;
 
-  private int GameMode;
+  private int gridSize = 50;
 
   private int connectionId = 0;
 
@@ -96,106 +102,89 @@ public class App extends WebSocketServer {
     connectionId++;
 
     System.out.println(conn.getRemoteSocketAddress().getAddress().getHostAddress() + " connected");
+
+    // Get version for header title display
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("ver", ver);
+    String jsonString = new Gson().toJson(jsonObject);
+    broadcast(jsonString);
   }
 
-  public void startGame(WebSocket conn, int GameMode) {
+  public void findGame(WebSocket conn, int numplayers) {
+    // Search for a game needing a player
     ServerEvent E = new ServerEvent();
-
-    // search for a game needing a player
     Game G = null;
     System.err.println("ActiveGames size: " + ActiveGames.size());
     for (Game i : ActiveGames) {
       System.err.println("for loop for active games fired.");
 
-      boolean openSpots = false;
-      if (i.GameMode == GameMode) {
-        for (PlayerType p : i.Players) {
-          if (p.equals(uta.cse3310.PlayerType.NOPLAYER)) {
-            openSpots = true;
-          }
-        }
-
-        if (openSpots) {
-          G = i;
-          System.out.println("found a match");
-        }
+      if (i.MaxPlayers != -1 && i.CurrPlayers < i.MaxPlayers && i.MaxPlayers == numplayers) {
+        G = i;
+        System.out.println("found a match");
       }
     }
 
-    // No matches ? Create a new Game.
-    // No matches ? Create a new Game.
-    PlayerType currPlayer = uta.cse3310.PlayerType.NOPLAYER;
+    // No matches? Create a new Game.
     if (G == null) {
-      G = new Game(stats, 1);
+      G = new Game(stats);
       G.GameId = GameId;
-      G.GameMode = GameMode;
+      G.MaxPlayers = numplayers;
       GameId++;
 
       // Add the first player
-      G.Players[0] = uta.cse3310.PlayerType.PLAYERONE;
-      currPlayer = uta.cse3310.PlayerType.PLAYERONE;
+      G.Players = uta.cse3310.PlayerType.PLAYERONE;
+      G.CurrPlayers++;
 
       ActiveGames.add(G);
       System.out.println("creating a new Game");
 
-      //putting in the generated word grid
+      // Putting in the generated word grid
       G.wordGrid = new WordGrid();
       G.wordGrid.Grid = new char[50][50];
+      G.wordGrid.GridClasses = new String[50][50];
       String filename = "words.txt";
-      int gridSize = 50;
       int numWords = (int) (gridSize * .8);
       System.out.println(numWords);
       int[][] coordinatesList = new int[4][(int) numWords];
       char[][] shownGrid = new char[gridSize][gridSize];
+      String[][] gridClasses = new String[gridSize][gridSize];
       
-      G.wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid);
+      G.wordGrid.generateGrid(gridSize, numWords, filename, coordinatesList, shownGrid, gridClasses);
       for (var i = 0; i < 50; i++)
       {
           for (var j = 0; j < 50; j++)
           {
             G.wordGrid.Grid[j][i] = shownGrid[j][i];
+            G.wordGrid.GridClasses[j][i] = gridClasses[j][i];
           }
       }
+
     } else {
-      // join an existing game
+      // Join an existing game
       System.out.println("not a new game");
-      for (int i = 0; i < G.Players.length; i++) {
-        if (G.Players[i].equals(uta.cse3310.PlayerType.NOPLAYER)) {
-          G.Players[i] = PlayerType.values()[i + 2];
-          currPlayer = PlayerType.values()[i + 2];
-        }
-      }
-      
-      if (!G.Players[G.Players.length - 1].equals(uta.cse3310.PlayerType.NOPLAYER)) {
-        G.StartGame();
-      }
+      G.Players = PlayerType.values()[G.Players.ordinal() + 1];
+      G.CurrPlayers++;
+      G.StartGame();
     }
 
-    // create an event to go to only the new player
-    E.YouAre = currPlayer;
+    // Create an event to go to only the new player
+    E.YouAre = G.Players;
     E.GameId = G.GameId;
-    E.GameMode = G.GameMode;
 
-    // allows the websocket to give us the Game when a message arrives..
-    // it stores a pointer to G, and will give that pointer back to us
-    // when we ask for it
+    // Allows the websocket to give us the Game when a message arrives..
+    // it stores a pointer to G, and will give that pointer back to us when we ask for it
     conn.setAttachment(G);
 
-    Gson gson = new Gson();
-
     // Note only send to the single connection
+    Gson gson = new Gson();
     String jsonString = gson.toJson(E);
     conn.send(jsonString);
     System.out
         .println("> " + Duration.between(startTime, Instant.now()).toMillis() + " " + connectionId + " "
             + escape(jsonString));
-            System.out.println("connection id: " + connectionId);
 
     // The state of the game has changed, so lets send it to everyone
     jsonString = gson.toJson(G);
-    JsonObject jsonObject = new Gson().fromJson(jsonString, JsonObject.class);
-    jsonObject.addProperty("ver", ver);
-    jsonString = new Gson().toJson(jsonObject);
     System.out
         .println("< " + Duration.between(startTime, Instant.now()).toMillis() + " " + "*" + " " + escape(jsonString));
     broadcast(jsonString);
@@ -217,43 +206,111 @@ public class App extends WebSocketServer {
     Gson gson = builder.create();
     try{
       UserEvent U = gson.fromJson(message, UserEvent.class);
-      Game G = conn.getAttachment();
-      // G.Update(U);
 
-      System.err.println("message: " + message + message.contains("username") + U.GameId + G.GameId);
-      if (message.contains("username")){ //  && U.GameId == G.GameId
+      // Submitting username
+      if (message.contains("Command")) {
+        if (U.username != null) {
+          UsernameScore.put(U.username, 0);
+          WaitingPlayers.add(U.username);
+        }
+
+        // Broadcast username list
+        String userscore = gson.toJson(UsernameScore);
+        String usernameList = gson.toJson(new UserEvent("username-list", userscore, U.username));
+        System.err.println("return whole list after adding " + U.username);
+        broadcast(usernameList);
+        System.err.println("username list broadcasted");
+
+        // Broadcast waiting list
+        String waitingList = gson.toJson(new UserEvent("waiting-list", String.join(",", WaitingPlayers), U.username));
+        System.err.println("return waiting list after adding " + U.username);
+        broadcast(waitingList);
+        System.err.println("waiting list broadcasted");
+        return;
+      }
+
+      // Connct to game in desired game mode
+      if (message.contains("numplayers")) {
+        findGame(conn, U.numplayers);
+
+        // Broadcast updated waiting list
+        WaitingPlayers.remove(U.username);
+        String waitingList = gson.toJson(new UserEvent("waiting-list", String.join(",", WaitingPlayers), U.username));
+        System.err.println("return waiting list after removing " + U.username);
+        broadcast(waitingList);
+        System.err.println("waiting list broadcasted");
+      }
+
+      // Connect to game
+      Game G = conn.getAttachment();
+      G.Update(U);
+
+      // Add usernames of players in current game
+      System.err.println("message: " + message + message.contains("username") + " " + U.GameId + " "  + G.GameId);
+      if (message.contains("username") && !G.PlayerUserNames.contains(U.username)) {
         G.PlayerUserNames.add(U.username);
       }
+
+      // Send the chat message to everyone
       System.err.println(gson.toJson(U));
       if ("chat-messages".equals(U.type)) {
-        // Chat message
-        // Send the message to everyone
         String chatMessageJson = gson.toJson(new UserEvent("chat", U.text, U.username));
         System.err.println("chat message: " + chatMessageJson);
         broadcast(chatMessageJson);
         System.err.println("chat message broadcasted");
         return;
       }
-      if ("num-players".equals(U.type)) {
-        startGame(conn, Integer.parseInt(U.text));
-      }
+
+      // Send word selection to everyone
       if ("word-selection".equals(U.type)) {
-        // word selection
-        // Send the selection to everyone
         boolean validWord = G.wordGrid.checkWord(U.text);
         System.err.println("valid word: " + validWord);
         if (validWord) {
-          String wordSelectionJson = gson.toJson(new UserEvent("wordCoordinates", U.coordinates, U.username));
+          int newScore = UsernameScore.getOrDefault(U.username, 0) + G.checkAndAwardPoints(U.text);
+          UsernameScore.put(U.username, newScore);
+          String userscore = gson.toJson(UsernameScore);
+          String usernameList = gson.toJson(new UserEvent("username-list", userscore, U.username));
+          System.err.println("return whole list after adding to " + U.username + "'s score");
+          broadcast(usernameList);
+          System.err.println("username list broadcasted");
+
+          String wordSelectionJson = gson.toJson(new UserEvent(G.GameId, "wordCoordinates", U.coordinates, U.text, U.username, U.useridx));
           System.err.println("word message: " + wordSelectionJson);
           broadcast(wordSelectionJson);
           System.err.println("word message broadcasted");
           return;
         }
       }
+
+      // Send found words to everyone
+      if ("found-words".equals(U.type)) {
+        String foundWordsJson = gson.toJson(new UserEvent(G.GameId, "foundWords", U.coordinates, U.text, U.username, U.useridx));
+        System.err.println("distribute found words");
+        System.out.println(U.text);
+        broadcast(foundWordsJson);
+        System.err.println("found words broadcasted");
+      }
+
+      // Update html/css formatting for all players
+      if ("update-format".equals(U.type)) {
+        String c = U.text;
+        String[] rows = c.split(";");
+
+        String[][] tempArray = new String[gridSize][gridSize];
+        for (int i = 0; i < gridSize; i++) {
+          String[] elem = rows[i].split(",");
+          tempArray[i] = elem;
+        }
+
+        for (int i = 0; i < gridSize; i++) {
+          for (int j = 0; j < gridSize; j++) {
+            G.wordGrid.GridClasses[i][j] = tempArray[i][j];
+          }
+        }
+        return;
+      }
       
-      String jsonString;
-      jsonString = gson.toJson(G);
-  
+      String jsonString = gson.toJson(G);
       System.out.println("> " + Duration.between(startTime, Instant.now()).toMillis() + " " + "*" + " " + escape(jsonString));
       broadcast(jsonString);
     }
@@ -270,6 +327,7 @@ public class App extends WebSocketServer {
   @Override
   public void onError(WebSocket conn, Exception ex) {
     ex.printStackTrace();
+    
     if (conn != null) {
       // some errors like port binding failed may not be assignable to a specific
       // websocket
@@ -324,19 +382,10 @@ public class App extends WebSocketServer {
     }
 
     // create and start the websocket server
-    //trying out the code below
+    // trying out the code below
     App websocketServer = new App(wsPort);
     websocketServer.setReuseAddr(true);
     websocketServer.start();
     System.out.println("WebSocket Server started on port: " + wsPort);
-
-
-    //this is the old code
-    // port = 9880;
-    // App A = new App(port);
-    // A.setReuseAddr(true);
-    // A.start();
-    // System.out.println("websocket Server started on port: " + port);
-
   }
 }
