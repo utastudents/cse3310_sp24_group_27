@@ -69,6 +69,8 @@ public class App extends WebSocketServer {
 
   private int GameId = 0;
 
+  private int GameMode;
+
   private int connectionId = 0;
 
   private Instant startTime;
@@ -91,11 +93,12 @@ public class App extends WebSocketServer {
 
   @Override
   public void onOpen(WebSocket conn, ClientHandshake handshake) {
-
     connectionId++;
 
     System.out.println(conn.getRemoteSocketAddress().getAddress().getHostAddress() + " connected");
+  }
 
+  public void startGame(WebSocket conn, int GameMode) {
     ServerEvent E = new ServerEvent();
 
     // search for a game needing a player
@@ -103,23 +106,35 @@ public class App extends WebSocketServer {
     System.err.println("ActiveGames size: " + ActiveGames.size());
     for (Game i : ActiveGames) {
       System.err.println("for loop for active games fired.");
-      if (i.Players == uta.cse3310.PlayerType.PLAYERONE ||
-          i.Players == uta.cse3310.PlayerType.PLAYERTWO ||
-          i.Players == uta.cse3310.PlayerType.PLAYERTHREE) {
-        G = i;
-        System.out.println("found a match");
+
+      boolean openSpots = false;
+      if (i.GameMode == GameMode) {
+        for (PlayerType p : i.Players) {
+          if (p.equals(uta.cse3310.PlayerType.NOPLAYER)) {
+            openSpots = true;
+          }
+        }
+
+        if (openSpots) {
+          G = i;
+          System.out.println("found a match");
+        }
       }
     }
 
     // No matches ? Create a new Game.
-     // No matches ? Create a new Game.
-    if (G == null || GameId % 2 == 1) {
-      G = new Game(stats);
+    // No matches ? Create a new Game.
+    PlayerType currPlayer = uta.cse3310.PlayerType.NOPLAYER;
+    if (G == null) {
+      G = new Game(stats, 1);
       G.GameId = GameId;
+      G.GameMode = GameMode;
       GameId++;
+
       // Add the first player
-      G.Players = uta.cse3310.PlayerType.PLAYERONE;
-      // G.Players = PlayerType.PLAYERONE;
+      G.Players[0] = uta.cse3310.PlayerType.PLAYERONE;
+      currPlayer = uta.cse3310.PlayerType.PLAYERONE;
+
       ActiveGames.add(G);
       System.out.println("creating a new Game");
 
@@ -144,13 +159,22 @@ public class App extends WebSocketServer {
     } else {
       // join an existing game
       System.out.println("not a new game");
-      G.Players = PlayerType.values()[G.Players.ordinal() + 1];
-      G.StartGame();
+      for (int i = 0; i < G.Players.length; i++) {
+        if (G.Players[i].equals(uta.cse3310.PlayerType.NOPLAYER)) {
+          G.Players[i] = PlayerType.values()[i + 2];
+          currPlayer = PlayerType.values()[i + 2];
+        }
+      }
+      
+      if (!G.Players[G.Players.length - 1].equals(uta.cse3310.PlayerType.NOPLAYER)) {
+        G.StartGame();
+      }
     }
 
     // create an event to go to only the new player
-    E.YouAre = G.Players;
+    E.YouAre = currPlayer;
     E.GameId = G.GameId;
+    E.GameMode = G.GameMode;
 
     // allows the websocket to give us the Game when a message arrives..
     // it stores a pointer to G, and will give that pointer back to us
@@ -165,8 +189,7 @@ public class App extends WebSocketServer {
     System.out
         .println("> " + Duration.between(startTime, Instant.now()).toMillis() + " " + connectionId + " "
             + escape(jsonString));
-
-    
+            System.out.println("connection id: " + connectionId);
 
     // The state of the game has changed, so lets send it to everyone
     jsonString = gson.toJson(G);
@@ -180,7 +203,7 @@ public class App extends WebSocketServer {
 
   @Override
   public void onClose(WebSocket conn, int code, String reason, boolean remote) {
- System.out.println(conn + " has closed");
+    System.out.println(conn + " has closed");
     // Retrieve the game tied to the websocket connection
     Game G = conn.getAttachment();
     G = null;
@@ -195,7 +218,7 @@ public class App extends WebSocketServer {
     try{
       UserEvent U = gson.fromJson(message, UserEvent.class);
       Game G = conn.getAttachment();
-      G.Update(U);
+      // G.Update(U);
 
       System.err.println("message: " + message + message.contains("username") + U.GameId + G.GameId);
       if (message.contains("username")){ //  && U.GameId == G.GameId
@@ -210,6 +233,9 @@ public class App extends WebSocketServer {
         broadcast(chatMessageJson);
         System.err.println("chat message broadcasted");
         return;
+      }
+      if ("num-players".equals(U.type)) {
+        startGame(conn, Integer.parseInt(U.text));
       }
       if ("word-selection".equals(U.type)) {
         // word selection
