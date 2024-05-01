@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Word Search Game</title>
-    <style>
+    <style id="styles">
       body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -34,19 +34,27 @@
         grid-template-rows: repeat(50, 1fr);
       }
       .cell {
-          font-size: 14.5pt;
-          padding: 1px;
-          text-align: center;
-          user-select: none;
-          background-color: white;
-        }
-      .selected
+        font-size: 14.5pt;
+        padding: 1px;
+        text-align: center;
+        user-select: none;
+        background-color: white;
+      }
+      .selected0, .used0
       {
           background-color: aqua;
       }
-      .used
+      .selected1, .used1
       {
-          background-color: aqua;
+          background-color: fuchsia;
+      }
+      .selected2, .used2
+      {
+          background-color:chartreuse;
+      }
+      .selected3, .used3
+      {
+          background-color: red;
       }
       .chat-box {
         height: 300px;
@@ -87,139 +95,161 @@
       <script>
         var GameId = -1;
         class UserEvent {
-          Button = -1;
-          PlayerIdx = 0;
-          GameId = 0;
-          GameMode = 0;
-          Command = "User"; // User is default, "Grid" to get the grid
+          PlayerIdx = -1;
+          Command = "User";
         }
         var connection = null;
         var serverUrl = "ws://" + window.location.hostname + ":9127";
+        var styleColor;
         var startPoint;
         var endPoint;
         let isMouseDown = false;
         let startCell = null;
         let endCell = null;
-        const numRows = 50;
-        const numCols = 50;
+        const gridSize = 50;
+        var usernameList = {};
+        var waitingList = [];
+        var foundwords = {};
 
-        function selectedCellsToConsole() {
-          const selectedCells = document.querySelectorAll(".selected");
+        function sendSelectedCells(GameId) {
+          const selectedCells = document.querySelectorAll(".selected" + PlayerIdx);
           let selectedLetters = "";
           selectedCells.forEach((cell) => {
             selectedLetters += cell.textContent.trim();
           });
           var highlightedLetters = {
             type: "word-selection",
+            gameid: GameId,
             text: selectedLetters,
             username: document.getElementById("usernameInput").value,
+            useridx: PlayerIdx,
             coordinates: [startPoint, endPoint]
-          }; 
+          };
+
           connection.send(JSON.stringify(highlightedLetters)); // Send the username to the server
           console.log(JSON.stringify(highlightedLetters));
         }
 
         function getRowCol(index) {
-            const row = Math.floor(index / numCols);
-            const col = index % numCols;
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
             return [row, col];
         }
 
         function getIdx(rowCol) {
-          return (rowCol[0] * numCols) + rowCol[1];
+          return (rowCol[0] * gridSize) + rowCol[1];
         }
 
         function getDist(coord1, coord2) {
           return Math.sqrt(
             Math.pow(coord2[0] - coord1[0], 2) +
-              Math.pow(coord2[1] - coord1[1], 2)
+            Math.pow(coord2[1] - coord1[1], 2)
           );
         }
 
 
-        function selectRange(start, end, addClass) {
-            const cells = document.querySelectorAll(".cell");
+        function selectRange(start, end, addClass, idx, myGameId, msgGameId) {
+          const cells = document.querySelectorAll(".cell");
 
-            let startRowCol = getRowCol(start);
-            let endRowCol = getRowCol(end);
-            startPoint = startRowCol;
-            endPoint = endRowCol;
-            let deltaX = endRowCol[0] - startRowCol[0];
-            let deltaY = endRowCol[1] - startRowCol[1];
-            let m = 0;
-            if (deltaX == 0) {
+          let startRowCol = getRowCol(start);
+          let endRowCol = getRowCol(end);
+          startPoint = startRowCol;
+          endPoint = endRowCol;
+          let deltaX = endRowCol[0] - startRowCol[0];
+          let deltaY = endRowCol[1] - startRowCol[1];
+          let m = 0;
+          if (deltaX == 0) {
+            m = "undef";
+          } else {
+            m = Math.round(deltaY / deltaX);
+
+            if (m < -1 || m > 1) {
               m = "undef";
-            } else {
-              m = deltaY / deltaX;
-
-              if (m != 0 && m != 1 && m != -1) {
-                m = Math.floor(m);
-
-                if (m < -1 || m > 1) {
-                  m = "undef";
-                }
-              }
             }
-            let dist = getDist(startRowCol, endRowCol);
+          }
+          let dist = getDist(startRowCol, endRowCol);
 
-            cells.forEach((cell, index) => {
-              let currRowCol = getRowCol(index);
+          cells.forEach((cell, index) => {
+            let currRowCol = getRowCol(index);
 
-              let currDeltaX = currRowCol[0] - startRowCol[0];
-              let currDeltaY = currRowCol[1] - startRowCol[1];
-              let currM = 0;
-              if (currDeltaX == 0) {
-                currM = "undef";
-              } else {
-                currM = currDeltaY / currDeltaX;
-              }
+            let currDeltaX = currRowCol[0] - startRowCol[0];
+            let currDeltaY = currRowCol[1] - startRowCol[1];
+            let currM = 0;
+            if (currDeltaX == 0) {
+              currM = "undef";
+            } else {
+              currM = currDeltaY / currDeltaX;
+            }
 
-              let currDist = getDist(startRowCol, currRowCol);
-
+            let currDist = getDist(startRowCol, currRowCol);
+            
+            if (myGameId == msgGameId) {
               if (addClass == "selected") {
                 if (index == start) {
-                  cell.classList.add("selected");
+                  cell.classList.add("selected" + idx);
                 } else if (currDist <= dist && currM == m) {
                   if (
                     Math.sign(currDeltaX) == Math.sign(deltaX) &&
                     Math.sign(currDeltaY) == Math.sign(deltaY)
                   ) {
-                    cell.classList.add("selected");
+                    cell.classList.add("selected" + idx);
                   }
                 }
                 else {
-                  cell.classList.remove("selected");
+                  cell.classList.remove("selected" + idx);
                 }
               } else if (addClass == "used") {
                 if (index == start) {
-                  cell.classList.add("used");
+                  cell.classList.add("used" + idx);
                 } else if (currDist <= dist && currM == m) {
                   if (
                     Math.sign(currDeltaX) == Math.sign(deltaX) &&
                     Math.sign(currDeltaY) == Math.sign(deltaY)
                   ) {
-                    cell.classList.add("used");
+                    cell.classList.add("used" + idx);
                     console.log("Cell at index " + currRowCol + " changed color.");
                   }
                 }
               }
-              
-            });
-          }
+            }
+          });
 
-        function selectCells() {
+          if (addClass == "used") {
+            var classArray = [];
+            for (let i = 0; i < gridSize; i++) {
+              var row = [];
+              for (let j = 0; j < gridSize; j++) {
+                row.push(Array.from(cells[(i * gridSize) + j].classList).join(' '));
+              }
+              classArray.push(row.join(','));
+            }
+            var updatedClasses = classArray.join(';');
+
+            var update = {
+              type: "update-format",
+              gameid: GameId,
+              text: updatedClasses,
+              username: document.getElementById("usernameInput").value,
+            };
+
+            connection.send(JSON.stringify(update));
+            console.log(JSON.stringify(update));
+          }
+        }
+
+        function selectCells(myGameId, msgGameId) {
             const cells = document.querySelectorAll(".cell");
             cells.forEach((cell, index) => {
               cell.addEventListener("mousedown", function () {
                 isMouseDown = true;
                 startCell = index;
-                cell.classList.add("selected");
+                cell.classList.add("selected" + PlayerIdx);
               });
 
               cell.addEventListener("mouseover", function () {
                 if (isMouseDown) {
                   endCell = index;
-                  selectRange(startCell, endCell, "selected");
+                  selectRange(startCell, endCell, "selected", PlayerIdx, myGameId, msgGameId);
                 }
               });
             });
@@ -227,150 +257,247 @@
             document.addEventListener("mouseup", function () {
               let hasSelected = false;
               cells.forEach((cell) => {
-                if (cell.classList.contains("selected")) {
+                if (cell.classList.contains("selected" + PlayerIdx)) {
                   hasSelected = true;
                 }
               });
 
               if (hasSelected) {
-                selectedCellsToConsole(); // testing letter selection in console
+                sendSelectedCells(GameId);
 
                 isMouseDown = false;
                 cells.forEach((cell, index) => {
-                  cell.classList.remove("selected");
+                  cell.classList.remove("selected" + PlayerIdx);
                 });
               }
             });
           }
 
-        // var serverUrl = "ws://" + window.location.hostname + ":9180" + (parseInt(location.port) + 100);
         connection = new WebSocket(serverUrl);
 
         connection.onopen = function (evt) {
           console.log("Connection opened.");
+          U = new UserEvent();
+          U.username = null;
+          connection.send(JSON.stringify(U)); // request username list from server
+          console.log(JSON.stringify(U));
         };
 
         connection.onclose = function (evt) {
-            console.log("Connection closed.");
-          };
-        var usernameList = [];
+          console.log("Connection closed.");
+        };
+
         function submitUsername(event) {
           if (event) {
             event.preventDefault();
           }
 
           var username = document.getElementById("usernameInput").value;
-          // p[username] = p.index;
+          var list = Object.keys(usernameList);
           if (username.trim() !== "") {
-              // Check if the username is already taken
-              var usernames = document.querySelectorAll("#waiting-players-list li");
-              for (var i = 0; i < usernames.length; i++) {
-                if (usernames[i].textContent === username) {
-                  alert("Username is already taken. Please choose a different one.");
-                  return;
-                }
+            for (var i = 0; i < list.length; i++) {
+              if (list[i] === username) {
+                alert("Username is already taken. Please choose a different one.");
+                return;
               }
-            //put the send from tic tac toe here
-            var waitingPlayersList = document.getElementById("waiting-players-list");
-            var newPlayerItem = document.createElement("li");
-            newPlayerItem.textContent = username;
-            waitingPlayersList.appendChild(newPlayerItem);
+            }
+            
             U = new UserEvent();
             U.username = username;
-            
-            connection.send(JSON.stringify(U)); // Send the username to the server
+            connection.send(JSON.stringify(U)); // send the username to the server
             console.log(JSON.stringify(U));
-            usernameList.push(username);
+            
+            document.getElementById("login-page").style.display = "none"; // hide login
+            document.getElementById("lobby-page").style.display = "block"; // show lobby
           } else {
             alert("Please enter a valid username.");
           }
-
-          document.getElementById("login-page").style.display = "none";
-          document.getElementById("lobby-page").style.display = "block"; // Show lobby
         }
 
         document
           .getElementById("usernameForm")
           .addEventListener("submit", submitUsername)
 
-
         // Listen for messages from the server
         connection.onmessage = function (event) {
+          console.log("Message received: " + event.data);
           var message = JSON.parse(event.data);
 
           if ('YouAre' in message) {
             if (message.YouAre == "PLAYERONE") {
                 PlayerIdx = 0;
-            }
-            else {
+            } else if (message.YouAre == "PLAYERTWO") {
                 PlayerIdx = 1;
+            } else if (message.YouAre == "PLAYERTHREE") {
+                PlayerIdx = 2;
+            } else if (message.YouAre == "PLAYERFOUR") {
+                PlayerIdx = 3;
             }
 
-            gameid = message.GameId;
+            GameId = message.GameId;
           }
 
-          if (message.type === "wordCoordinates"){
-              console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
-              console.log("Start idx: " + getIdx(message.coordinates[0]) + " End idx: " + getIdx(message.coordinates[1]));
-              selectRange(getIdx(message.coordinates[0]), getIdx(message.coordinates[1]), "used");
+          if (message.type === "username-list") {
+            usernameList = JSON.parse(message.text);
+
+            var userScoreArr = Object.entries(usernameList).map(([username, score]) => ({ username, score }));
+            userScoreArr.sort((a, b) => b.score - a.score); // order from highest to lowest score
+
+            // Display leaderboard in lobby
+            var rank = document.getElementById('rank');
+            var usernames = document.getElementById('username');
+            var scores = document.getElementById('score');
+            rank.innerHTML = "";
+            usernames.innerHTML = "";
+            scores.innerHTML = "";
+            var topThree = userScoreArr.slice(0, 3);
+            topThree.forEach(function(user, i) {
+              var topRank = document.createElement("li");
+              var topUser = document.createElement("li");
+              var topScore = document.createElement("li");
+
+              topRank.textContent = i + 1;
+              topUser.textContent = user.username
+              topScore.textContent = user.score
+
+              rank.appendChild(topRank);
+              usernames.appendChild(topUser);
+              scores.appendChild(topScore);
+            })
           }
 
-          console.log("Message received: " + event.data);
-          if ("PlayerUserNames" in message) {
-              var playerUserNames = message["PlayerUserNames"];
-              
-              for (var i = 0; i < playerUserNames.length; i++) {
-                  addPlayerToList(playerUserNames[i]);
+          // Get updated waiting list for lobby
+          if (message.type === "waiting-list") {
+            let temp = message.text.split(",");
+            waitingList = temp;
+
+            var waitingPlayersList = document.getElementById("waiting-players-list");
+            waitingPlayersList.innerHTML = "";
+            for (var i = 0; i < waitingList.length; i++) {
+              var newPlayerItem = document.createElement("li");
+              newPlayerItem.textContent = waitingList[i];
+              waitingPlayersList.appendChild(newPlayerItem);
+            }
+          }
+
+          // Receive if selected word is valid
+          if (message.GameId === GameId && message.type === "wordCoordinates") {
+            console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
+            console.log("Start idx: " + getIdx(message.coordinates[0]) + " End idx: " + getIdx(message.coordinates[1]));
+            selectRange(getIdx(message.coordinates[0]), getIdx(message.coordinates[1]), "used", message.useridx, GameId, message.GameId);
+            
+            // Send out word found to everyone
+            if (message.GameId === GameId && message.username in foundwords) {
+              if (!(message.text in foundwords[message.username])) {
+                foundwords[message.username].push(message.text);
+
+                var words = JSON.stringify(foundwords);
+                var found = {
+                  type: "found-words",
+                  gameid: GameId,
+                  text: words,
+                  username: document.getElementById("usernameInput").value,
+                  useridx: PlayerIdx,
+                };
+
+                connection.send(JSON.stringify(found));
+                console.log(JSON.stringify(found));
               }
+            }
+          }
+          
+          // Update found words only if new > old
+          if (message.GameId === GameId && message.type === "foundWords") {
+            var newFoundWords = JSON.parse(message.text);
+
+            let old = Object.values(foundwords).map(array => array.length);
+            let nw = Object.values(newFoundWords).map(array => array.length);
+
+            let oldLen = old.reduce((total, length) => total + length, 0);
+            let newLen = nw.reduce((total, length) => total + length, 0);
+
+            if (newLen > oldLen) {
+              foundwords = newFoundWords;
+            }
           }
 
+          // Get players in the same game
+          if (message.GameId === GameId && "PlayerUserNames" in message) {
+            var playerUserNames = message["PlayerUserNames"];
+            for (var i = 0; i < playerUserNames.length; i++) {
+              if (!(playerUserNames[i] in foundwords)) {
+                console.log("add user " + playerUserNames[i]);
+                foundwords[playerUserNames[i]] = [];
+                
+                var found = {
+                  type: "found-words",
+                  gameid: GameId,
+                  text: JSON.stringify(foundwords),
+                  username: document.getElementById("usernameInput").value,
+                  useridx: PlayerIdx,
+                };
+
+                connection.send(JSON.stringify(found));
+                console.log(JSON.stringify(found));
+              }
+            }
+
+            // Display scoreboard on game page
+            var j = 0;
+            Object.entries(foundwords).forEach(([user, words]) => {
+              if (message.PlayerUserNames.includes(user)) {
+                document.getElementById("sb" + j).style.display = "block";
+                document.getElementById("user" + j).textContent = user;
+                document.getElementById("score" + j).textContent = usernameList[user];
+
+                var wordList = document.getElementById("words" + j);
+                wordList.innerHTML = "";
+                words.forEach((word) => {
+                  var addWord = document.createElement("li");
+                  addWord.textContent = word;
+                  wordList.appendChild(addWord);
+                });
+                j++;
+              }
+            });
+          }
+
+          // Update chat as messages come in
           if (message.type === "chat") {
             addChatMessage(message.text, message.username);
-          } else if (message.type === "new_player") {
-            var playerName = message.username;
-            addPlayerToList(playerName);
           }
 
+          // Get git hash of current version
           if ("ver" in message) {
             document.title = "TWSG " + message.ver;
           }
+          
+          // Load grid if not loaded
+          if (message.GameId == GameId && message.wordGrid != null) {
+            var size = message.wordGrid.Grid.length;
+            const grid = document.getElementById('grid');
+            const wordBank = document.getElementById('word-bank');
 
-          if (document.getElementById('grid').childNodes.length <= 0) {
-            if(message.wordGrid != null && message.wordGrid.Grid.length > 0) {
-              var size = message.wordGrid.Grid.length;
-              const grid = document.getElementById('grid');
+            wordBank.innerHTML = message.wordGrid.words.join(" ");
 
-              // create cells in the format <div class="cell">A</div>
-              grid.innerHTML = "";
-              for(var row=0; row<size; row++)
-              {
-                for(var col=0; col<size; col++)
-                {
-                  var temp = message.wordGrid.Grid[row][col];
-                  const cell = document.createElement('div')
-                  cell.classList.add('cell')
-                  cell.textContent = temp;
-                  // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
-                  grid.appendChild(cell);
-                }
+            grid.innerHTML = "";
+            for(var i = 0; i < gridSize; i++) {
+              for(var j = 0; j < gridSize; j++) {
+                const cell = document.createElement('div')
+                var tempLetter = message.wordGrid.Grid[i][j];
+                var tempClasses = message.wordGrid.GridClasses[i][j].split(" ");
+
+                cell.textContent = tempLetter;
+                tempClasses.forEach(function(c) {
+                  cell.classList.add(c);
+                })
+                grid.appendChild(cell);
               }
-              selectCells();
             }
+
+            selectCells(GameId, message.GameId);
           }
         };
-
-      function addPlayerToList(playerName){
-            //TODO: need to recieve it from the server and then show it on the screen for all players
-          if (!(usernameList.includes(playerName))) {
-              var waitingPlayersList = document.getElementById(
-          "waiting-players-list");
-              var newPlayerItem = document.createElement("li");
-              newPlayerItem.textContent = playerName;
-              waitingPlayersList.appendChild(newPlayerItem);
-              usernameList.push(playerName);
-          }
-        }
-
       </script>
     </div>
 
@@ -383,88 +510,69 @@
       </div>
       
       <div class="container">
-        <!-- Generate waiting players div in this style: -->
         <div id="waiting-players" class="box waiting-players-box">
             <h2 style="margin-bottom: 0px">Players Waiting</h2>
-          <hr style="margin-bottom: 20px" />
-          <ol id="waiting-players-list"></ol>
-      </div>
-      
-      <!-- End example div -->
-      <div class="box leaderboard-box">
+            <hr style="margin-bottom: 20px" />
+            <ol id="waiting-players-list"></ol>
+        </div>
+
+        <div class="box leaderboard-box">
           <h2 style="margin-bottom: 0px">Leaderboard</h2>
           <hr style="margin-bottom: 20px" />
           <div class="container">
-              <!-- Generate rank div in this style: -->
-              <div id="rank">
-                  <h3 style="margin-top: 0px">Rank</h3>
-              <ol style="list-style: none; padding: 0px">
-                  <li>1</li>
-                  <li>2</li>
-                  <li>3</li>
-              </ol>
+            <div>
+              <h3 style="margin-top: 0px">Rank</h3>
+              <ol id="rank" style="list-style: none; padding: 0px"></ol>
             </div>
-            <!-- End example div -->
             
             <div style="padding-top: 0px; border-right: 1px solid black"></div>
             
-            <!-- Generate nickname div in this style: -->
-            <div id="nickname">
-                <h3 style="margin-top: 0px">Nickname</h3>
-                <ol style="list-style: none; padding: 0px">
-                <li>Player 4</li>
-                <li>Player 5</li>
-                <li>Player 6</li>
-              </ol>
-          </div>
-          <!-- End example div -->
-          
-          <div style="padding-top: 0px; border-right: 1px solid black"></div>
-          
-          <!-- Generate score div in this style: -->
-          <div id="score">
+            <div>
+              <h3 style="margin-top: 0px">Username</h3>
+              <ol id="username" style="list-style: none; padding: 0px"></ol>
+            </div>
+            
+            <div style="padding-top: 0px; border-right: 1px solid black"></div>
+            
+            <div>
               <h3 style="margin-top: 0px">Score</h3>
-              <ol style="list-style: none; padding: 0px">
-                <li>1500</li>
-                <li>1100</li>
-                <li>990</li>
-              </ol>
+              <ol id="score" style="list-style: none; padding: 0px"></ol>
+            </div>
           </div>
-          <!-- End example div -->
         </div>
       </div>
-    </div>
 
-    <div class="container">
-      <div class="box player-buttons" style="text-align: center">
-          <button onclick="selectPlayers(2)" style="font-size: 14pt">
-              Play With 2 Players
-          </button>
-          <button onclick="selectPlayers(3)" style="font-size: 14pt">
-              Play With 3 Players
-          </button>
-          <button onclick="selectPlayers(4)" style="font-size: 14pt">
-              Play With 4 Players
-          </button>
+      <div class="container">
+        <div class="box player-buttons" style="text-align: center">
+            <button onclick="selectPlayers(2)" style="font-size: 14pt">
+                Play With 2 Players
+            </button>
+            <button onclick="selectPlayers(3)" style="font-size: 14pt">
+                Play With 3 Players
+            </button>
+            <button onclick="selectPlayers(4)" style="font-size: 14pt">
+                Play With 4 Players
+            </button>
+        </div>
       </div>
+
+      <script>
+        // Set desired game mode
+        function selectPlayers(numPlayers) {
+          var gameType = {
+            numplayers: numPlayers,
+            type: "find-game",
+            username: document.getElementById("usernameInput").value,
+          };
+
+          connection.send(JSON.stringify(gameType));
+          console.log(JSON.stringify(gameType));
+
+          document.getElementById("lobby-page").style.display = "none"; // hide lobby
+          document.getElementById("game-page").style.display = "block"; // Show game
+        }
+      </script>
     </div>
-
-    <script>
-      function selectPlayers(numPlayers) {
-        console.log(numPlayers + " players selected.");
-
-        var selectPlayerNum = {
-          type: "num-players",
-          text: numPlayers
-        };
-        connection.send(JSON.stringify(selectPlayerNum));
-        console.log(JSON.stringify(selectPlayerNum));
-
-        document.getElementById("lobby-page").style.display = "none";
-        document.getElementById("game-page").style.display = "block"; // Show game
-      }
-    </script>
-  </div>
     
     <!-- game.html -->
     <div id="game-page" style="display: none;">
@@ -478,88 +586,63 @@
 
         <div style="padding-left: 20px">
           <div class="box scoreboard-box" style="padding: 10px">
-            <h2
-              style="
+            <h2 style="
                 margin: 0px;
                 margin-left: 10px;
                 margin-right: 10px;
-                text-align: center;
-              "
-            >
-              Scoreboard
+                text-align: center;">
+                Scoreboard
             </h2>
 
-            <div id="scoreboard">
-              <!-- Repeat for other players in session -->
-              <div>
+            <div>
+              <div id="sb0" style="display: none;">
                 <hr style="margin-bottom: 20px" />
-                <div
-                  class="container"
-                  style="padding: 5px; background-color: aqua"
-                >
-                  <h3 style="margin: 0px">Player 1</h3>
-                  <h3 style="margin: 0px">1500</h3>
+                <div class="container used0" style="padding: 5px">
+                  <h3 id="user0" style="margin: 0px"></h3>
+                  <h3 id="score0" style="margin: 0px"></h3>
                 </div>
 
-                <ol style="margin: 5px">
-                  <li>Word1</li>
-                  <li>Word2</li>
-                  <li>Word3</li>
-                </ol>
+                <ol id="words0" style="margin: 5px"></ol>
               </div>
 
-              <div>
+              <div id="sb1" style="display: none;">
                 <hr style="margin-bottom: 20px" />
-                <div
-                  class="container"
-                  style="padding: 5px; background-color: fuchsia"
-                >
-                  <h3 style="margin: 0px">Player 2</h3>
-                  <h3 style="margin: 0px">1100</h3>
+                <div class="container used1" style="padding: 5px">
+                  <h3 id="user1" style="margin: 0px"></h3>
+                  <h3 id="score1" style="margin: 0px"></h3>
                 </div>
 
-                <ol style="margin: 5px">
-                  <li>Word4</li>
-                  <li>Word5</li>
-                  <li>Word6</li>
-                </ol>
+                <ol id="words1" style="margin: 5px"></ol>
               </div>
 
-              <div>
+              <div id="sb2" style="display: none;">
                 <hr style="margin-bottom: 20px" />
-                <div
-                  class="container"
-                  style="padding: 5px; background-color: chartreuse"
-                >
-                  <h3 style="margin: 0px">Player 3</h3>
-                  <h3 style="margin: 0px">900</h3>
+                <div class="container used2" style="padding: 5px">
+                  <h3 id="user2" style="margin: 0px"></h3>
+                  <h3 id="score2" style="margin: 0px"></h3>
                 </div>
 
-                <ol style="margin: 5px">
-                  <li>Word7</li>
-                  <li>Word8</li>
-                  <li>Word9</li>
-                </ol>
+                <ol id="words2" style="margin: 5px"></ol>
               </div>
 
-              <div>
+              <div id="sb3" style="display: none;">
                 <hr style="margin-bottom: 20px" />
-                <div
-                  class="container"
-                  style="padding: 5px; background-color: red"
-                >
-                  <h3 style="margin: 0px">Player 4</h3>
-                  <h3 style="margin: 0px">800</h3>
+                <div class="container used3" style="padding: 5px">
+                  <h3 id="user3" style="margin: 0px"></h3>
+                  <h3 id="score3" style="margin: 0px"></h3>
                 </div>
 
-                <ol style="margin: 5px">
-                  <li>Word10</li>
-                  <li>Word11</li>
-                  <li>Word12</li>
-                </ol>
+                <ol id="words3" style="margin: 5px"></ol>
               </div>
-              <!-- End example scoreboard entry -->
             </div>
+          </div>
+
+          <div style="padding: 10px"></div>
+
+          <div class="box" style="padding: 10px;">
+            <h2 style="margin: 0px; margin-left: 10px; margin-right: 10px; text-align: center;">Word Bank</h2>
+            <hr style="margin-bottom: 20px" />
+            <div id="word-bank" style="font-size: 16pt; white-space: wrap; width: 300px;"></div>
           </div>
 
           <div style="padding: 10px"></div>
@@ -567,12 +650,7 @@
           <div class="box chat-box" style="padding: 10px">
             <h2 style="margin: 0px; text-align: center">Chat</h2>
             <hr style="margin-bottom: 20px" />
-            <div id="chat-messages" style="overflow-y: auto">
-              <!-- Chat messages will go here -->
-              <!-- <div><strong>Player 1:</strong> Hi everyone!</div>
-              <div><strong>Player 2:</strong> Hello!</div> -->
-              <!-- Example chat messages -->
-            </div>
+            <div id="chat-messages" style="overflow-y: auto"></div>
           </div>
 
           <div class="container" style="padding: 0px; padding-top: 10px">
@@ -593,6 +671,7 @@
       </div>
 
       <script>
+        // Send message to chat
         function sendMessage(event) {
           if (event) {
             event.preventDefault();
@@ -614,8 +693,19 @@
             alert("Please enter a valid message.");
           }
         }
-
         
+        // Listen to send on enter key
+        document.addEventListener("DOMContentLoaded", function() {
+          var inputField = document.getElementById("chat-box");
+          inputField.addEventListener("keypress", function(event) {
+              if (event.keyCode === 13) {
+                  event.preventDefault();
+                  sendMessage(event);
+              }
+          });
+        });
+        
+        // Add message to chat
         function addChatMessage(message, username) {
           var chatMessages = document.getElementById("chat-messages");
           var newMessage = document.createElement("div");

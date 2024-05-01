@@ -37,9 +37,10 @@ import junit.framework.TestSuite;
              int numWords = 150;
              int[][] coordinatesList = new int[2][numWords];
              char[][] shownGrid = new char[gridSize][gridSize];
+             String[][] gridClasses = new String[gridSize][gridSize];
         
              // Generate the grid
-             wordGrid.generateGrid(gridSize, numWords, "words.txt", coordinatesList, shownGrid);
+             wordGrid.generateGrid(gridSize, numWords, "words.txt", coordinatesList, shownGrid, gridClasses);
         
              // Create a new Game instance
              Game game = new Game(new Statistics());
