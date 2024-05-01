@@ -90,6 +90,7 @@
           Button = -1;
           PlayerIdx = 0;
           GameId = 0;
+          GameMode = 0;
           Command = "User"; // User is default, "Grid" to get the grid
         }
         var connection = null;
@@ -109,14 +110,13 @@
             selectedLetters += cell.textContent.trim();
           });
           var highlightedLetters = {
-              type: "word-selection",
-              text: selectedLetters,
-              username: document.getElementById("usernameInput").value,
-              coordinates: [startPoint, endPoint]
-            }; 
+            type: "word-selection",
+            text: selectedLetters,
+            username: document.getElementById("usernameInput").value,
+            coordinates: [startPoint, endPoint]
+          }; 
           connection.send(JSON.stringify(highlightedLetters)); // Send the username to the server
           console.log(JSON.stringify(highlightedLetters));
-          
         }
 
         function getRowCol(index) {
@@ -260,6 +260,7 @@
           }
 
           var username = document.getElementById("usernameInput").value;
+          // p[username] = p.index;
           if (username.trim() !== "") {
               // Check if the username is already taken
               var usernames = document.querySelectorAll("#waiting-players-list li");
@@ -295,56 +296,67 @@
 
         // Listen for messages from the server
         connection.onmessage = function (event) {
-            var message = JSON.parse(event.data);
+          var message = JSON.parse(event.data);
 
-            if (message.type === "wordCoordinates"){
-                console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
-                console.log("Start idx: " + getIdx(message.coordinates[0]) + " End idx: " + getIdx(message.coordinates[1]));
-                selectRange(getIdx(message.coordinates[0]), getIdx(message.coordinates[1]), "used");
+          if ('YouAre' in message) {
+            if (message.YouAre == "PLAYERONE") {
+                PlayerIdx = 0;
+            }
+            else {
+                PlayerIdx = 1;
             }
 
-            console.log("Message received: " + event.data);
-            if ("PlayerUserNames" in message) {
-                var playerUserNames = message["PlayerUserNames"];
-                
-                for (var i = 0; i < playerUserNames.length; i++) {
-                    addPlayerToList(playerUserNames[i]);
-                }
-            }
+            gameid = message.GameId;
+          }
 
-            if (message.type === "chat") {
-              addChatMessage(message.text, message.username);
-            } else if (message.type === "new_player") {
-              var playerName = message.username;
-              addPlayerToList(playerName);
-            }
+          if (message.type === "wordCoordinates"){
+              console.log("[" + message.coordinates[0] + "] [" + message.coordinates[1] +"]");
+              console.log("Start idx: " + getIdx(message.coordinates[0]) + " End idx: " + getIdx(message.coordinates[1]));
+              selectRange(getIdx(message.coordinates[0]), getIdx(message.coordinates[1]), "used");
+          }
 
-            if ("ver" in message) {
-              document.title = "TWSG " + message.ver;
-            }
-
-            if (document.getElementById('grid').childNodes.length <= 0) {
-              if(message.wordGrid != null && message.wordGrid.Grid.length > 0) {
-                var size = message.wordGrid.Grid.length;
-                const grid = document.getElementById('grid');
-
-                // create cells in the format <div class="cell">A</div>
-                grid.innerHTML = "";
-                for(var row=0; row<size; row++)
-                {
-                  for(var col=0; col<size; col++)
-                  {
-                    var temp = message.wordGrid.Grid[row][col];
-                    const cell = document.createElement('div')
-                    cell.classList.add('cell')
-                    cell.textContent = temp;
-                    // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
-                    grid.appendChild(cell);
-                  }
-                }
-                selectCells();
+          console.log("Message received: " + event.data);
+          if ("PlayerUserNames" in message) {
+              var playerUserNames = message["PlayerUserNames"];
+              
+              for (var i = 0; i < playerUserNames.length; i++) {
+                  addPlayerToList(playerUserNames[i]);
               }
+          }
+
+          if (message.type === "chat") {
+            addChatMessage(message.text, message.username);
+          } else if (message.type === "new_player") {
+            var playerName = message.username;
+            addPlayerToList(playerName);
+          }
+
+          if ("ver" in message) {
+            document.title = "TWSG " + message.ver;
+          }
+
+          if (document.getElementById('grid').childNodes.length <= 0) {
+            if(message.wordGrid != null && message.wordGrid.Grid.length > 0) {
+              var size = message.wordGrid.Grid.length;
+              const grid = document.getElementById('grid');
+
+              // create cells in the format <div class="cell">A</div>
+              grid.innerHTML = "";
+              for(var row=0; row<size; row++)
+              {
+                for(var col=0; col<size; col++)
+                {
+                  var temp = message.wordGrid.Grid[row][col];
+                  const cell = document.createElement('div')
+                  cell.classList.add('cell')
+                  cell.textContent = temp;
+                  // cell.textContent = characters.charAt((i + j) % charactersLength); // A-Z in order
+                  grid.appendChild(cell);
+                }
+              }
+              selectCells();
             }
+          }
         };
 
       function addPlayerToList(playerName){
@@ -359,9 +371,6 @@
           }
         }
 
-        function gridStart(){
-
-        }
       </script>
     </div>
 
@@ -442,9 +451,17 @@
 
     <script>
       function selectPlayers(numPlayers) {
-          console.log(numPlayers + " players selected.");
-          document.getElementById("lobby-page").style.display = "none";
-          document.getElementById("game-page").style.display = "block"; // Show game
+        console.log(numPlayers + " players selected.");
+
+        var selectPlayerNum = {
+          type: "num-players",
+          text: numPlayers
+        };
+        connection.send(JSON.stringify(selectPlayerNum));
+        console.log(JSON.stringify(selectPlayerNum));
+
+        document.getElementById("lobby-page").style.display = "none";
+        document.getElementById("game-page").style.display = "block"; // Show game
       }
     </script>
   </div>
