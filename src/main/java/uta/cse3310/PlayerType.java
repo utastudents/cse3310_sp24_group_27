@@ -6,5 +6,3 @@ public enum PlayerType {
     NOPLAYER, PLAYERONE, PLAYERTWO, PLAYERTHREE, PLAYERFOUR
 
 }
- 
- 

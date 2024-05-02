@@ -263,10 +263,17 @@ public class App extends WebSocketServer {
 
       // Send word selection to everyone
       if ("word-selection".equals(U.type)) {
-        boolean validWord = G.wordGrid.checkWord(U.text);
+        String backwardsWord = "";
+        for(int i = 0; i < U.text.length(); i++){
+          backwardsWord = U.text.charAt(i) + backwardsWord;
+        }
+        boolean forward = G.wordGrid.checkWord(U.text);
+        boolean backward = G.wordGrid.checkWord(backwardsWord);
+        boolean validWord = forward || backward;
         System.err.println("valid word: " + validWord);
         if (validWord) {
-          int newScore = UsernameScore.getOrDefault(U.username, 0) + G.checkAndAwardPoints(U.text);
+          String word = forward ? U.text : backwardsWord;
+          int newScore = UsernameScore.getOrDefault(U.username, 0) + G.checkAndAwardPoints(word);
           UsernameScore.put(U.username, newScore);
           String userscore = gson.toJson(UsernameScore);
           String usernameList = gson.toJson(new UserEvent("username-list", userscore, U.username));
@@ -274,7 +281,7 @@ public class App extends WebSocketServer {
           broadcast(usernameList);
           System.err.println("username list broadcasted");
 
-          String wordSelectionJson = gson.toJson(new UserEvent(G.GameId, "wordCoordinates", U.coordinates, U.text, U.username, U.useridx));
+          String wordSelectionJson = gson.toJson(new UserEvent(G.GameId, "wordCoordinates", U.coordinates, word, U.username, U.useridx));
           System.err.println("word message: " + wordSelectionJson);
           broadcast(wordSelectionJson);
           System.err.println("word message broadcasted");
