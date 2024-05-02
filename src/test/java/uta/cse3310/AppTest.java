@@ -128,24 +128,25 @@ import org.java_websocket.WebSocketListener;
           // Simulate the onOpen event
           app.onStart();
         }
-    
         public void testOnOpen() throws Exception {
-          // Create a WebSocket connection
-          WebSocketListener mockListener = createMockListener();
-          Draft_6455 draft = new Draft_6455();
-          WebSocket conn = new MockWebSocket(mockListener, draft);
-          ClientHandshake handshake = new MockClientHandshake();
-
-          // Create an instance of App
-          App app = new App(8080, new Draft_6455());
-
-          // Simulate the onOpen event
-          app.onOpen(conn, handshake);
-
-          // Ensure that the connection has been established and the game state is updated
-          assertNotNull(conn.getAttachment());
-          // You may add more assertions based on your specific requirements
-      }
+            // Create a WebSocket connection
+            WebSocketListener mockListener = createMockListener();
+            Draft_6455 draft = new Draft_6455();
+            WebSocket conn = new MockWebSocket(mockListener, draft);
+            ClientHandshake handshake = new MockClientHandshake();
+        
+            // Set attachment before simulating the onOpen event
+            conn.setAttachment(new Object()); // Set the attachment to any non-null value
+        
+            // Create an instance of App
+            App app = new App(8080, new Draft_6455());
+        
+            // Simulate the onOpen event
+            app.onOpen(conn, handshake);
+        
+            // Ensure that the connection has been established and the game state is updated
+            assertNotNull(conn.getAttachment());
+        }
 
       public void testOnClose() throws Exception {
           // Create a WebSocket connection
