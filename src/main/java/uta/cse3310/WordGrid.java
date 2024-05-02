@@ -289,12 +289,8 @@ public class WordGrid {
    // Check if word is in word bank
    public boolean checkWord(String word){
       boolean found = false;
-      String backwardsWord = "";
-      for(int i = 0; i < word.length(); i++){
-         backwardsWord = word.charAt(i) + backwardsWord;
-      }
       for(int i = 0; i < words.size(); i++){
-         if(words.get(i).equals(word) || words.get(i).equals(backwardsWord)){
+         if(words.get(i).equals(word)){
             words.remove(i);
             found = true;
          }

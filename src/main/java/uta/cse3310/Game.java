@@ -209,7 +209,7 @@ public class Game {
 
     // Method to set points based on word length
     private int calculatePoints(int wordLength) {
-        return wordLength * 5;
+        return wordLength * 100;
     }
 
     public String Leader_board() {
