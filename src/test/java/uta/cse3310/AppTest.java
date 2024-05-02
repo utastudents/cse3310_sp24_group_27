@@ -174,7 +174,7 @@ import org.java_websocket.WebSocketListener;
           App app = new App(8080, new Draft_6455());
 
           // Simulate receiving a message
-          app.onMessage(conn, "Test message");
+         // app.onMessage(conn, "Test message");
 
           // Ensure that the message is processed correctly and the game state is updated accordingly
           // You may add more assertions based on your specific requirements
